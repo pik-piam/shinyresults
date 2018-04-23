@@ -43,7 +43,6 @@ appMAgPIE <- function(file="https://www.pik-potsdam.de/rd3mod/magpie.rds", resul
               sidebarPanel(
                              selectInput('scenario', 'Scenario', "Pending upload",multiple = TRUE),
                              selectInput('region', 'Region', "Pending upload",multiple = TRUE),
-                             #selectInput('year', 'Year', "Pending upload",multiple = TRUE),
                              sliderInput('year', 'Year',min=2000,max=2100,value=c(2000,2100),step=10),
                              selectInput('variable', 'Variable', "Pending upload",multiple = FALSE),
                              tags$hr(),
@@ -172,10 +171,9 @@ appMAgPIE <- function(file="https://www.pik-potsdam.de/rd3mod/magpie.rds", resul
         print("update choices data")
         val$rep_full <- rep_full()$report
         updateSelectInput(session, "model", choices = levels(val$rep_full$model),selected = levels(val$rep_full$model)[1])
-        updateSelectInput(session, "scenario", choices = levels(val$rep_full$scenario),selected = if (length(levels(val$rep_full$scenario)) > 2) levels(val$rep_full$scenario)[1:2] else levels(val$rep_full$scenario))
+        updateSelectInput(session, "scenario", choices = levels(val$rep_full$scenario),selected = levels(val$rep_full$scenario))
         updateSelectInput(session, "region", choices = levels(val$rep_full$region),selected = levels(val$rep_full$region))
         updateSliderInput(session, "year", min = min(val$rep_full$period), max = max(val$rep_full$period),value = c(min(val$rep_full$period),max(val$rep_full$period)))
-        #updateSelectInput(session, "year", choices = unique(val$rep_full$period),selected = unique(val$rep_full$period))
         updateSelectInput(session, "variable", choices = levels(val$rep_full$variable),selected = levels(val$rep_full$variable)[1])
         showTab("full","Show Data", select = TRUE)
       }
