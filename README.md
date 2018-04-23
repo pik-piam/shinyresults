@@ -1,8 +1,8 @@
-# lucode coding tools
+# shinyresults
 
 ## Purpose and Functionality
 
-A collection of tools which allow to manipulate and analyze code.
+collection of shiny apps and modules to visualize/handle model results
 
 ## Installation
 
@@ -16,7 +16,7 @@ The additional repository can be made availably permanently by adding the line a
 After that the most recent version of the package can be installed using `install.packages`:
 
 ```r 
-install.packages("lucode")
+install.packages("shinyresults")
 ```
 
 Package updates can be installed using `update.packages` (make sure that the additional repository has been added before running that command):
@@ -32,6 +32,6 @@ In case of questions / problems please contact Jan Dietrich <dietrich@pik-potsda
 
 ## Citation
 
-[![DOI](https://zenodo.org/badge/117548029.svg)](https://zenodo.org/badge/latestdoi/117548029)
+not yet available
 
 
