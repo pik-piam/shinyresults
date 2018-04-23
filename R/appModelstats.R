@@ -12,7 +12,7 @@
 #' @export
 
 
-modelstats <- function(files=c("https://www.pik-potsdam.de/rd3mod/magpie.rds","https://www.pik-potsdam.de/rd3mod/remind.rds"), resultsfolder=NULL) {
+appModelstats <- function(files=c("https://www.pik-potsdam.de/rd3mod/magpie.rds","https://www.pik-potsdam.de/rd3mod/remind.rds"), resultsfolder=NULL) {
   
   names(files) <- basename(files)
   
@@ -34,7 +34,7 @@ modelstats <- function(files=c("https://www.pik-potsdam.de/rd3mod/magpie.rds","h
                                         label = "Choose Colorkey",
                                         choices = "revision"),
                             tags$p(),tags$hr(),tags$p(),
-                            shinyFilterUI("runfilter"))),
+                            modFilterUI("runfilter"))),
       mainPanel(plotOutput("stats"))
     )
   )
@@ -71,7 +71,7 @@ modelstats <- function(files=c("https://www.pik-potsdam.de/rd3mod/magpie.rds","h
       updateSelectInput(session, "color",  choices=x$variables, selected = "user")
     })
     
-    selection <- callModule(shinyFilter,"runfilter",data=x$data,exclude=".id")
+    selection <- callModule(modFilter,"runfilter",data=reactive(x$data),exclude=".id")
     
     output$stats <- renderPlot({
       cset <- function(i,check) {

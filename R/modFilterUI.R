@@ -1,19 +1,19 @@
 #' shinyFilterUI Module
 #'
-#' Corresponding user interface to \code{\link{shinyFilter}} to filter a data set based on user input
+#' Corresponding user interface to \code{\link{modFilter}} to filter a data set based on user input
 #'
 #' @param id id of the filter
 #' @author Jan Philipp Dietrich
-#' @seealso \code{\link{shinyFilter}}, \code{\link{modelstats}}
+#' @seealso \code{\link{modFilter}}, \code{\link{appModelstats}}
 #' @importFrom shiny NS
 #' @export
 
-shinyFilterUI <- function(id) {
+modFilterUI <- function(id) {
   ns <- NS(id)
   tags$div(id=ns("filterbox"),
            selectInput(inputId = ns("filter"),
                        label = "Choose a filter",
-                       choices = "user"),
+                       choices = ""),
            tags$div(id=ns("filterend")),
            tags$hr(),
            textOutput(ns("observations")))
