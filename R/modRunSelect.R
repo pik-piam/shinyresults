@@ -9,6 +9,7 @@
 #' @author Jan Philipp Dietrich
 #' @seealso \code{\link{modFilterUI}}, \code{\link{appModelstats}}
 #' @importFrom shiny updateSliderInput withProgress incProgress
+#' @importFrom tools file_path_sans_ext
 #' @importFrom data.table uniqueN
 #' @export
 

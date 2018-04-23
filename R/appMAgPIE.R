@@ -10,11 +10,8 @@
 #' fileInput tags selectInput mainPanel tabsetPanel wellPanel fluidRow column radioButtons conditionalPanel
 #' checkboxInput checkboxGroupInput numericInput textInput downloadButton dataTableOutput h2 verbatimTextOutput
 #' shinyApp renderPlot plotOutput renderUI HTML nearPoints updateCheckboxInput updateSliderInput hideTab showTab
-#' @importFrom stats as.formula complete.cases na.omit
 #' @importFrom utils write.csv
 #' @importFrom data.table fread setcolorder as.data.table data.table setnames
-#' @importFrom stats median reshape
-#' @importFrom tools file_ext file_path_sans_ext
 #' @importFrom trafficlight trafficlight
 #' @importFrom magclass as.magpie
 #' @importFrom mip mipLineHistorical theme_mip mipArea
@@ -22,7 +19,7 @@
 #' @importFrom ggplot2 ggsave
 #' @export
 #'
-appMAgPIE <- function(file="https://www.pik-potsdam.de/rd3mod/magpie.rds", resultsfolder="https://www.pik-potsdam.de/rd3mod/magpie/", valfile=NULL) {
+appMAgPIE <- function(file="https://www.pik-potsdam.de/rd3mod/magpie.rds", resultsfolder="https://www.pik-potsdam.de/rd3mod/magpie/", valfile="https://www.pik-potsdam.de/rd3mod/validation.rds") {
   
   #client-sided function
   ui <- fluidPage(
@@ -44,11 +41,10 @@ appMAgPIE <- function(file="https://www.pik-potsdam.de/rd3mod/magpie.rds", resul
             tabPanel("Show Data",
               sidebarLayout(
               sidebarPanel(
-                             selectInput('model', 'Model', "Pending upload",multiple = TRUE),
                              selectInput('scenario', 'Scenario', "Pending upload",multiple = TRUE),
                              selectInput('region', 'Region', "Pending upload",multiple = TRUE),
-                             selectInput('year', 'Year', "Pending upload",multiple = TRUE),
-                             #sliderInput("year", "Year",min=2000,max=2100,value=c(2000,2100),step=10),
+                             #selectInput('year', 'Year', "Pending upload",multiple = TRUE),
+                             sliderInput('year', 'Year',min=2000,max=2100,value=c(2000,2100),step=10),
                              selectInput('variable', 'Variable', "Pending upload",multiple = FALSE),
                              tags$hr(),
                              checkboxInput('update_plot', 'Update Plot', value = TRUE, width = NULL),
@@ -115,25 +111,27 @@ appMAgPIE <- function(file="https://www.pik-potsdam.de/rd3mod/magpie.rds", resul
     rep_full <- callModule(modRunSelect,"select",file=file, resultsfolder=resultsfolder)
     
     if(!is.null(valfile)) {
-      if (file_ext(valfile) %in% c("RData","rda","rds")) {
-        val$val_full <- readRDS(valfile)
-      } else stop("Format not supported!")
+      if(grepl("https://",valfile)) {
+        val_full <- readRDS(gzcon(url(valfile)))
+      } else {
+        val_full <- readRDS(valfile)
+      }
+      levels(val_full$region) <- sub("World","GLO",levels(val_full$region))
     }
     
     #subsetting the data stepwise is faster than all at once
-    observeEvent(c(input$model,input$scenario,input$region,input$year,input$variable,input$valfile,input$show_val),{
+    observeEvent(c(input$scenario,input$region,input$year,input$variable,input$show_val),{
         print("full subset model data")
         val$rep_full <- rep_full()$report
-        val$rep_sel <- subset(val$rep_full,model %in% input$model)
-        val$rep_sel <- subset(val$rep_sel,scenario %in% input$scenario)
+        val$rep_sel <- subset(val$rep_full,scenario %in% input$scenario)
         val$rep_sel <- subset(val$rep_sel,region %in% input$region)
-        val$rep_sel <- subset(val$rep_sel,period %in% input$year)
+        val$rep_sel <- subset(val$rep_sel,(period >= input$year[1]) & (period <= input$year[2])) 
         val$rep_sel <- subset(val$rep_sel,variable %in% input$variable)
         val$rep_sel <- droplevels(val$rep_sel)
 
-      if(!is.null(val$val_full) & input$show_val) {
+      if(!is.null(val_full) & input$show_val) {
         print("subset validation data")
-        val$val_sel <- subset(val$val_full,region %in% input$region)
+        val$val_sel <- subset(val_full,region %in% input$region)
         val$val_sel <- subset(val$val_sel,variable %in% input$variable)
         val$val_sel <- droplevels(val$val_sel)
         if(nrow(val$val_sel) == 0) val$val_sel <- NULL
@@ -166,6 +164,8 @@ appMAgPIE <- function(file="https://www.pik-potsdam.de/rd3mod/magpie.rds", resul
       updateSelectInput(session, "color",  choices=rep_full()$variables, selected = "user")   
     })
     
+    
+    
     observe({
 
       if(rep_full()$ready)   {
@@ -174,27 +174,17 @@ appMAgPIE <- function(file="https://www.pik-potsdam.de/rd3mod/magpie.rds", resul
         updateSelectInput(session, "model", choices = levels(val$rep_full$model),selected = levels(val$rep_full$model)[1])
         updateSelectInput(session, "scenario", choices = levels(val$rep_full$scenario),selected = if (length(levels(val$rep_full$scenario)) > 2) levels(val$rep_full$scenario)[1:2] else levels(val$rep_full$scenario))
         updateSelectInput(session, "region", choices = levels(val$rep_full$region),selected = levels(val$rep_full$region))
-        updateSelectInput(session, "year", choices = unique(val$rep_full$period),selected = unique(val$rep_full$period))
+        updateSliderInput(session, "year", min = min(val$rep_full$period), max = max(val$rep_full$period),value = c(min(val$rep_full$period),max(val$rep_full$period)))
+        #updateSelectInput(session, "year", choices = unique(val$rep_full$period),selected = unique(val$rep_full$period))
         updateSelectInput(session, "variable", choices = levels(val$rep_full$variable),selected = levels(val$rep_full$variable)[1])
         showTab("full","Show Data", select = TRUE)
       }
     })
 
-    observe({
-      print("update choices validation")
-      updateSelectInput(session, "valmodel", choices = levels(val$val_sel$model),selected = levels(val$val_sel$model))
-      updateSelectInput(session, "valscenario", choices = levels(val$val_sel$scenario),selected = levels(val$val_sel$scenario))
-#      updateSelectInput(session, "valregion", choices = levels(val$valtmp$Region),selected = levels(val$valtmp$Region))
-      updateSelectInput(session, "valyear", choices = unique(val$val_sel$period),selected = unique(val$val_sel$period))
-#      updateSelectInput(session, "valvariable", choices = levels(val$valtmp$Variable),selected = levels(val$valtmp$Variable)[1])
-      })
-    
-    
     tf <- reactive({
       if(is.null(val$val_sel)) stop("Validation file needed for trafficlights!")
       else trafficlight(x=as.magpie(val$rep_sel,spatial="region",temporal="period",tidy=TRUE),xc=as.magpie(val$val_sel,spatial="region",temporal="period",tidy=TRUE),detailed=FALSE)
     })
-    
     
     lineplot <- reactive({
       if(input$update_plot) {
