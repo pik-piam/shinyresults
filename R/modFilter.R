@@ -1,4 +1,4 @@
-#' shinyFilter Module
+#' modFilter Module
 #'
 #' Shiny module which works together with \code{\link{modFilterUI}} to filter a data set based on user input
 #'

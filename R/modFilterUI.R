@@ -1,4 +1,4 @@
-#' shinyFilterUI Module
+#' modFilterUI Module
 #'
 #' Corresponding user interface to \code{\link{modFilter}} to filter a data set based on user input
 #'
