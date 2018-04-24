@@ -169,13 +169,14 @@ appMAgPIE <- function(file="https://www.pik-potsdam.de/rd3mod/magpie.rds", resul
 
       if(rep_full()$ready)   {
         print("update choices data")
+        showTab("full","Show Data", select = TRUE)
         val$rep_full <- rep_full()$report
         updateSelectInput(session, "model", choices = levels(val$rep_full$model),selected = levels(val$rep_full$model)[1])
         updateSelectInput(session, "scenario", choices = levels(val$rep_full$scenario),selected = levels(val$rep_full$scenario))
         updateSelectInput(session, "region", choices = levels(val$rep_full$region),selected = levels(val$rep_full$region))
         updateSliderInput(session, "year", min = min(val$rep_full$period), max = max(val$rep_full$period),value = c(min(val$rep_full$period),max(val$rep_full$period)))
         updateSelectInput(session, "variable", choices = levels(val$rep_full$variable),selected = levels(val$rep_full$variable)[1])
-        showTab("full","Show Data", select = TRUE)
+
       }
     })
 
