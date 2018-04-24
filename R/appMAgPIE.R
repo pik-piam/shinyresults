@@ -157,7 +157,7 @@ appMAgPIE <- function(file="https://www.pik-potsdam.de/rd3mod/magpie.rds", resul
     })
     
     observeEvent(rep_full()$variables,{
-      hideTab("full","Show Data")
+      #hideTab("full","Show Data")
       updateSelectInput(session, "xaxis",  choices=rep_full()$variables, selected = "revision_date")
       updateSelectInput(session, "yaxis",  choices=rep_full()$variables, selected = "title")
       updateSelectInput(session, "color",  choices=rep_full()$variables, selected = "user")   
@@ -169,7 +169,7 @@ appMAgPIE <- function(file="https://www.pik-potsdam.de/rd3mod/magpie.rds", resul
 
       if(rep_full()$ready)   {
         print("update choices data")
-        showTab("full","Show Data", select = TRUE)
+        #showTab("full","Show Data", select = TRUE)
         val$rep_full <- rep_full()$report
         updateSelectInput(session, "model", choices = levels(val$rep_full$model),selected = levels(val$rep_full$model)[1])
         updateSelectInput(session, "scenario", choices = levels(val$rep_full$scenario),selected = levels(val$rep_full$scenario))
