@@ -11,9 +11,11 @@
 modFilterUI <- function(id) {
   ns <- NS(id)
   tags$div(id=ns("filterbox"),
-           selectInput(inputId = ns("filter"),
+           tags$div(id=ns("filterselector"),
+                    selectInput(inputId = ns("filter"),
                        label = "Choose a filter",
-                       choices = ""),
+                       choices = "")
+           ),
            tags$div(id=ns("filterend")),
            tags$hr(),
            textOutput(ns("observations")))

@@ -13,6 +13,13 @@ modLinePlot <- function(input, output, session, report, validation) {
   
   val <- reactiveValues()
   
+  selection <- callModule(modFilter, 
+                          "runfilter",
+                          data=reactive(report()$report), 
+                          exclude=c("value","unit"), 
+                          showAll=TRUE, 
+                          multiple=c(variable=FALSE))
+  
   #subsetting the data stepwise is faster than all at once
   observeEvent(c(input$scenario,input$region,input$year,input$variable,input$show_val),{
     print("full subset model data")
@@ -52,23 +59,9 @@ modLinePlot <- function(input, output, session, report, validation) {
     }
   })
   
-  observe({
-    
-    if(report()$ready)   {
-      print("update choices data (LinePlot)")
-      val$rep_full <- report()$report
-      updateSelectInput(session, "model", choices = levels(val$rep_full$model),selected = levels(val$rep_full$model)[1])
-      updateSelectInput(session, "scenario", choices = levels(val$rep_full$scenario),selected = levels(val$rep_full$scenario))
-      updateSelectInput(session, "region", choices = levels(val$rep_full$region),selected = levels(val$rep_full$region))
-      updateSliderInput(session, "year", min = min(val$rep_full$period), max = max(val$rep_full$period),value = c(min(val$rep_full$period),max(val$rep_full$period)))
-      updateSelectInput(session, "variable", choices = levels(val$rep_full$variable),selected = levels(val$rep_full$variable)[1])
-      
-    }
-  })
-  
   lineplot <- reactive({
     if(input$update_plot & report()$ready & !is.null(val$rep_sel)) {
-      p <- mipLineHistorical(x=val$rep_sel,x_hist=val$val_sel,size = 10,ylab = val$rep_sel$unit,title = val$rep_sel$variable,scales = input$scales)
+      p <- mipLineHistorical(x=selection(),x_hist=NULL,size = 10,ylab = selection()$unit,title = selection()$variable,scales = input$scales)
     } else p <- NULL
     return(p)
   })

@@ -10,6 +10,7 @@
 modLinePlotUI <- function(id) {
   ns <- NS(id)
   tags$div(id=ns("filterbox"),
+    modFilterUI(ns("runfilter")),
     selectInput(ns('scenario'), 'Scenario', "Pending upload",multiple = TRUE),
     selectInput(ns('region'), 'Region', "Pending upload",multiple = TRUE),
     sliderInput(ns('year'), 'Year',min=2000,max=2100,value=c(2000,2100),step=10),

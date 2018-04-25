@@ -12,7 +12,7 @@
 #' @importFrom data.table uniqueN
 #' @export
 
-modFilter <- function(input, output, session, data, exclude=NULL) {
+modFilter <- function(input, output, session, data, exclude=NULL, showAll=FALSE, multiple=NULL) {
   
   x <- reactiveValues()
   
@@ -49,7 +49,7 @@ modFilter <- function(input, output, session, data, exclude=NULL) {
     return(data[fvec,])
   }
   
-  selectUI <- function(session,filter, data, class) {
+  selectUI <- function(session,filter, data, class, multiple) {
     if(filter=="") return(NULL)
     if(is.na(class)) class <- "NA"
     if(class=="POSIXct") {
@@ -57,7 +57,7 @@ modFilter <- function(input, output, session, data, exclude=NULL) {
       max <- max(data, na.rm=TRUE)
       id <- paste0("slider", filter)
       x[[id]] <- c(min=min,max=max)
-      return(tags$div(id=paste0("div",filter),
+      return(tags$div(id=session$ns(paste0("div",filter)),
                       sliderInput(inputId = session$ns(id),
                                   label = filter,
                                   min = min,
@@ -67,12 +67,12 @@ modFilter <- function(input, output, session, data, exclude=NULL) {
                                   step=60,
                                   timezone="CET",
                                   timeFormat = "%F %H:%M")))
-    } else if(class=="numeric") {
+    } else if(class %in% c("integer","numeric")) {
       min <- floor(min(data, na.rm=TRUE))
       max <- ceiling(max(data, na.rm=TRUE))
       id <- paste0("slider", filter)
       x[[id]] <- c(min=min,max=max)
-      return(tags$div(id=paste0("div",filter),
+      return(tags$div(id=session$ns(paste0("div",filter)),
                       sliderInput(inputId = session$ns(id),
                                   label = filter,
                                   min = min,
@@ -83,33 +83,48 @@ modFilter <- function(input, output, session, data, exclude=NULL) {
       choices <- sort(unique(data))
       id <- paste0("select", filter)
       x[[id]] <- choices
-      return(tags$div(id=paste0("div",filter),
+      return(tags$div(id=session$ns(paste0("div",filter)),
                       selectInput(inputId = session$ns(id),
                                   label = filter,
                                   choices = choices,
-                                  multiple = TRUE, "display:inline")))
+                                  multiple = multiple, "display:inline")))
     }
   }
   
   observeEvent(data(),{
+    print(str(data()))
     x$data <- data()
     nelem <- apply(x$data,2,uniqueN)
     x$filter <- names(x$data)[!(names(x$data)%in%exclude) & nelem>1]
     x$filterclass <- sapply(x$data,function(x)return(class(x)[1]))
+    x$filtermultiple <- multiple
+    x$filtermultiple[x$filter[!(x$filter %in% names(multiple))]] <- TRUE
     for(f in x$activefilter) {
       removeUI(
-        selector = escapeRegex(paste0("#div",f))
+        selector = paste0("#",session$ns(paste0("div",escapeRegex(f))))
       )
     }
     x$activefilter <- NULL
-    updateSelectInput(session, "filter", choices=x$filter)
-    if(input$filter==x$filter[1]) {
-      insertUI(
+    if(showAll) {
+      removeUI(selector = paste0("#",session$ns("filterselector")))
+      for(xf in x$filter){
+        insertUI(
+          selector = paste0("#",session$ns("filterend")),
+          where = "beforeBegin",
+          ui = selectUI(session,xf, x$data[[xf]], x$filterclass[xf], x$filtermultiple[xf])
+        )
+      }
+      x$activefilter <- x$filter
+    } else {
+      updateSelectInput(session, "filter", choices=x$filter)
+      if(input$filter==x$filter[1]) {
+        insertUI(
         selector = paste0("#",session$ns("filterend")),
         where = "beforeBegin",
-        ui = selectUI(session,input$filter, x$data[[input$filter]], x$filterclass[input$filter])
+        ui = selectUI(session,input$filter, x$data[[input$filter]], x$filterclass[input$filter], x$filtermultiple[input$filter])
       )
       x$activefilter <- c(x$activefilter,input$filter)
+      }
     }
   })
   
@@ -118,7 +133,7 @@ modFilter <- function(input, output, session, data, exclude=NULL) {
       insertUI(
         selector = paste0("#",session$ns("filterend")),
         where = "beforeBegin",
-        ui = selectUI(session,input$filter, x$data[[input$filter]], x$filterclass[input$filter])
+        ui = selectUI(session,input$filter, x$data[[input$filter]], x$filterclass[input$filter], x$filtermultiple[input$filter])
       )
       x$activefilter <- c(x$activefilter,input$filter)
     }
@@ -132,7 +147,7 @@ modFilter <- function(input, output, session, data, exclude=NULL) {
       }
       if(removeUI) {
         removeUI(
-          selector = escapeRegex(paste0("#div",f))
+          selector = paste0("#",session$ns(paste0("div",escapeRegex(f))))
         )
         x$activefilter <- setdiff(x$activefilter,f)
       }
