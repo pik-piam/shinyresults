@@ -107,6 +107,7 @@ appMAgPIE <- function(file="https://www.pik-potsdam.de/rd3mod/magpie.rds", resul
       } else {
         val_full <- readRDS(valfile)
       }
+      val_full <- val_full[!is.na(val_full$value),]
       levels(val_full$region) <- sub("World","GLO",levels(val_full$region))
     }
     

@@ -5,21 +5,35 @@
 #' @param input,output,session Default input, output and session objects coming from shiny
 #' @param data A reactive returning a data.table with observations in rows and filter options in columns
 #' @param exclude names of columns that should be not used as filter
-#' @return a reactive containing the filtered data.table
+#' @param showAll FALSE | If set to TRUE all available filter are shown and the filter selector is hidden
+#' @param multiple vector with booleans for each filter defining whether multiple selections are allowed
+#' or not. If information is not provided it is assumed that multiple selection is allowed
+#' @param xdata additional data.tables which should be filtered by the same rules as data. If provided
+#' the format of the return value changes
+#' @param xdataExclude similar to exclude a vector of filters that should be ignored for xdata. Useful if xdata should
+#' only filtered for a subset of filters applied to data
+#' @return a reactive containing the filtered data.table, or if xdata is provided a reactive list with x as the 
+#' filtered data and xdata containing the list of additional, filtered data element.
 #' @author Jan Philipp Dietrich
 #' @seealso \code{\link{modFilterUI}}, \code{\link{appModelstats}}
 #' @importFrom shiny updateSliderInput
 #' @importFrom data.table uniqueN
 #' @export
 
-modFilter <- function(input, output, session, data, exclude=NULL, showAll=FALSE, multiple=NULL) {
+modFilter <- function(input, output, session, data, exclude=NULL, showAll=FALSE, multiple=NULL, xdata=NULL, xdataExclude=NULL) {
   
   x <- reactiveValues()
   
-  selectdata <- function(data,input,filter){
+  selectdata <- function(data,input,filter,xdata,xdataExclude){
+    start <- Sys.time()
+    message("Run selectdata in modFilter..")
     if(is.null(data)) return(data.frame())
     choices <- list()
     fvec <- rep(TRUE,dim(data)[1])
+    xfvec <- list()
+    for(n in names(xdata)) {
+      xfvec[[n]] <- rep(TRUE,dim(xdata[[n]])[1])
+    }
     for(f in filter) {
       slf <- paste0("slider",f)
       if(!is.null(input[[slf]])) {
@@ -32,7 +46,16 @@ modFilter <- function(input, output, session, data, exclude=NULL, showAll=FALSE,
           x[[slf]]["min"] <- slmin
         }
         
-        fvec <- (fvec & (data[[f]] >= input[[slf]][1]) & (data[[f]] <= input[[slf]][2]))
+        tmp <- function(fvec,data,min,max) {
+          if(is.factor(data)) data <- as.numeric(levels(data))[data]
+          return(fvec & (data >= min) & (data <= max))
+        }
+        fvec <- tmp(fvec,data[[f]],input[[slf]][1],input[[slf]][2])
+        if(!(f %in% xdataExclude)) {
+          for(n in names(xdata)) {
+            xfvec[[n]] <- tmp(xfvec[[n]],xdata[[n]][[f]],input[[slf]][1],input[[slf]][2])
+          }
+        }
       } else {
         sf <- paste0("select",f)
         if(!is.null(input[[sf]])) {
@@ -42,11 +65,29 @@ modFilter <- function(input, output, session, data, exclude=NULL, showAll=FALSE,
             x[[sf]] <- slchoices
           }
           fvec <- (fvec & (data[[f]] %in% input[[sf]]))
+          if(!(f %in% xdataExclude)) {
+            for(n in names(xdata)) {
+              xfvec[[n]] <- (xfvec[[n]] & (xdata[[n]][[f]] %in% input[[sf]]))
+            }
+          }
         }
       }
     }
     fvec[is.na(fvec)] <- FALSE
-    return(data[fvec,])
+    for(n in names(xdata)) {
+      xfvec[[n]][is.na(xfvec[[n]])] <- FALSE
+    }
+    if(is.null(xdata)) {
+      out <- data[fvec,]
+    } else {
+      for(n in names(xdata)){
+        xdata[[n]] <- xdata[[n]][xfvec[[n]],]
+      }
+      out <- list(x=data[fvec,], xdata=xdata)
+    }
+    
+    message("  ..finished selectdata in modFilter (",round(as.numeric(Sys.time()-start,units="secs"),4),"s)")
+    return(out)
   }
   
   selectUI <- function(session,filter, data, class, multiple) {
@@ -65,6 +106,7 @@ modFilter <- function(input, output, session, data, exclude=NULL, showAll=FALSE,
                                   value = c(min(data, na.rm=TRUE),max(data, na.rm=TRUE)),
                                   ticks = FALSE,
                                   step=60,
+                                  sep="",
                                   timezone="CET",
                                   timeFormat = "%F %H:%M")))
     } else if(class %in% c("integer","numeric")) {
@@ -78,7 +120,8 @@ modFilter <- function(input, output, session, data, exclude=NULL, showAll=FALSE,
                                   min = min,
                                   max = max,
                                   value = c(min(data, na.rm=TRUE),max(data, na.rm=TRUE)),
-                                  ticks = FALSE)))        
+                                  ticks = FALSE,
+                                  sep="")))        
     } else {
       choices <- sort(unique(data))
       id <- paste0("select", filter)
@@ -92,7 +135,6 @@ modFilter <- function(input, output, session, data, exclude=NULL, showAll=FALSE,
   }
   
   observeEvent(data(),{
-    print(str(data()))
     x$data <- data()
     nelem <- apply(x$data,2,uniqueN)
     x$filter <- names(x$data)[!(names(x$data)%in%exclude) & nelem>1]
@@ -154,7 +196,7 @@ modFilter <- function(input, output, session, data, exclude=NULL, showAll=FALSE,
     }
   })
   
-  out <- reactive(selectdata(data(),input,x$activefilter))
+  out <- reactive(selectdata(data(),input,x$activefilter,xdata,xdataExclude))
   output$observations <- renderText(paste0(dim(out())[1]," observations"))
   
   return(out)
