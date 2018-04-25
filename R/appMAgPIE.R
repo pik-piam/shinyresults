@@ -38,6 +38,12 @@ appMAgPIE <- function(file="https://www.pik-potsdam.de/rd3mod/magpie.rds", resul
                                     tags$p(),tags$hr(),tags$p(),
                                     modRunSelectUI("select"))),
               mainPanel(plotOutput("stats")))),
+            tabPanel("LinePlot",
+            sidebarLayout(
+            sidebarPanel(modLinePlotUI("lineplot")),
+            mainPanel(
+              plotOutput("lineplot",height = "800px",width = "auto")
+            ))),
             tabPanel("Show Data",
               sidebarLayout(
               sidebarPanel(
@@ -51,18 +57,6 @@ appMAgPIE <- function(file="https://www.pik-potsdam.de/rd3mod/magpie.rds", resul
         ),
       mainPanel(
         tabsetPanel(id = "main",type = "tabs",
-                    tabPanel("LinePlot",
-                             plotOutput("lineplot",height = "800px",width = "auto"),
-                             wellPanel(
-                               fluidRow(
-                                 column(2,
-                                        selectInput('scales', 'Scales',c("fixed","free_y","free_x","free"),selected="fixed"),
-                                        checkboxInput('normalize', 'Normalize', value = FALSE, width = NULL)
-                                 )
-                               )
-                             ),
-                             wellPanel(downloadButton('downloadLinePlot', 'Download Plot'))
-                    ),
                     tabPanel("AreaPlot",
                              plotOutput("areaplot",height = "800px",width = "auto"),
                              wellPanel(
@@ -107,8 +101,6 @@ appMAgPIE <- function(file="https://www.pik-potsdam.de/rd3mod/magpie.rds", resul
     #initialize reactive value
     val <- reactiveValues()
     
-    rep_full <- callModule(modRunSelect,"select",file=file, resultsfolder=resultsfolder)
-    
     if(!is.null(valfile)) {
       if(grepl("https://",valfile)) {
         val_full <- readRDS(gzcon(url(valfile)))
@@ -118,43 +110,8 @@ appMAgPIE <- function(file="https://www.pik-potsdam.de/rd3mod/magpie.rds", resul
       levels(val_full$region) <- sub("World","GLO",levels(val_full$region))
     }
     
-    #subsetting the data stepwise is faster than all at once
-    observeEvent(c(input$scenario,input$region,input$year,input$variable,input$show_val),{
-        print("full subset model data")
-        val$rep_full <- rep_full()$report
-        val$rep_sel <- subset(val$rep_full,scenario %in% input$scenario)
-        val$rep_sel <- subset(val$rep_sel,region %in% input$region)
-        val$rep_sel <- subset(val$rep_sel,(period >= input$year[1]) & (period <= input$year[2])) 
-        val$rep_sel <- subset(val$rep_sel,variable %in% input$variable)
-        val$rep_sel <- droplevels(val$rep_sel)
-
-      if(!is.null(val_full) & input$show_val) {
-        print("subset validation data")
-        val$val_sel <- subset(val_full,region %in% input$region)
-        val$val_sel <- subset(val$val_sel,variable %in% input$variable)
-        val$val_sel <- droplevels(val$val_sel)
-        if(nrow(val$val_sel) == 0) val$val_sel <- NULL
-      } else val$val_sel <- NULL
-    })
-    
-    #normalize
-    observeEvent(input$normalize,{
-      if(input$normalize) {
-        val$rep_sel_tmp <- val$rep_sel
-        print("normalize data")
-        years <- unique(val$rep_sel$period)
-        base_year <- val$rep_sel$value[val$rep_sel$period==years[1]]
-        val$rep_sel$value <- val$rep_sel$value/rep(base_year,length(years))
-        if(!is.null(val$val_sel)) {
-          val$val_sel_tmp <- val$val_sel
-          val$val_sel$value <- val$val_sel$value/rep(base_year,length(unique(val$val_sel$period)))
-        }
-      } else {
-        print("restore data")
-        if(!is.null(val$rep_sel_tmp)) val$rep_sel <- val$rep_sel_tmp
-        if(!is.null(val$val_sel_tmp)) val$val_sel <- val$val_sel_tmp
-      }
-    })
+    rep_full <- callModule(modRunSelect,"select",file=file, resultsfolder=resultsfolder)
+    output$lineplot <- callModule(modLinePlot,"lineplot",report=rep_full,validation=reactive(val_full))
     
     observeEvent(rep_full()$variables,{
       #hideTab("full","Show Data")
@@ -163,33 +120,10 @@ appMAgPIE <- function(file="https://www.pik-potsdam.de/rd3mod/magpie.rds", resul
       updateSelectInput(session, "color",  choices=rep_full()$variables, selected = "user")   
     })
     
-    
-    
-    observe({
-
-      if(rep_full()$ready)   {
-        print("update choices data")
-        #showTab("full","Show Data", select = TRUE)
-        val$rep_full <- rep_full()$report
-        updateSelectInput(session, "model", choices = levels(val$rep_full$model),selected = levels(val$rep_full$model)[1])
-        updateSelectInput(session, "scenario", choices = levels(val$rep_full$scenario),selected = levels(val$rep_full$scenario))
-        updateSelectInput(session, "region", choices = levels(val$rep_full$region),selected = levels(val$rep_full$region))
-        updateSliderInput(session, "year", min = min(val$rep_full$period), max = max(val$rep_full$period),value = c(min(val$rep_full$period),max(val$rep_full$period)))
-        updateSelectInput(session, "variable", choices = levels(val$rep_full$variable),selected = levels(val$rep_full$variable)[1])
-
-      }
-    })
 
     tf <- reactive({
       if(is.null(val$val_sel)) stop("Validation file needed for trafficlights!")
       else trafficlight(x=as.magpie(val$rep_sel,spatial="region",temporal="period",tidy=TRUE),xc=as.magpie(val$val_sel,spatial="region",temporal="period",tidy=TRUE),detailed=FALSE)
-    })
-    
-    lineplot <- reactive({
-      if(input$update_plot) {
-        p <- mipLineHistorical(x=val$rep_sel,x_hist=val$val_sel,size = 10,ylab = val$rep_sel$unit,title = val$rep_sel$variable,scales = input$scales)
-      } else p <- NULL
-      return(p)
     })
     
     areaplot <- reactive({
@@ -211,9 +145,6 @@ appMAgPIE <- function(file="https://www.pik-potsdam.de/rd3mod/magpie.rds", resul
         theme
     }, height=700)
     
-    output$lineplot <- renderPlot({
-      lineplot()},res = 120)#height = 400, width = 500
-    
     output$areaplot <- renderPlot({
       areaplot()},res = 120)#height = 400, width = 500
     
@@ -234,12 +165,7 @@ appMAgPIE <- function(file="https://www.pik-potsdam.de/rd3mod/magpie.rds", resul
     output$data <- renderDataTable({
       val$rep_sel
     }, options = list(pageLength = 10))
-    output$downloadLinePlot <- downloadHandler(
-      filename = function() { paste("export", '.pdf', sep='') },
-      content = function(file) {
-        ggsave(file, plot = lineplot(), device = "pdf",scale=1,width=20,height=18,units="cm",dpi=150)
-      }
-    )
+    
     output$downloadAreaPlot <- downloadHandler(
       filename = function() { paste("export", '.pdf', sep='') },
       content = function(file) {
