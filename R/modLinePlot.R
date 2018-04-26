@@ -25,8 +25,13 @@ modLinePlot <- function(input, output, session, report, validation) {
     start <- Sys.time()
     message("Create lineplot in modLinePlot..")
     if(report()$ready) {
-      p <- mipLineHistorical(x      = selection()$x,
-                           x_hist = selection()$xdata$validation,
+      if(input$show_val) {
+        validation <- selection()$xdata$validation
+      } else {
+        validation <- NULL
+      }
+      p <- mipLineHistorical(x    = selection()$x,
+                           x_hist = validation,
                            size   = 10,
                            ylab   = selection()$x$unit,
                            title  = selection()$x$variable,
