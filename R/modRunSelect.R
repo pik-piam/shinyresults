@@ -42,30 +42,15 @@ modRunSelect <- function(input, output, session, file, resultsfolder) {
     return(fout)
   }
   
-  dummy <- function() {
-    model <- factor(c("Model1", "Model2", "Model3"))
-    scenario <- factor(c("Scen1", "Scen2", "Scen3"))
-    region <- factor(c("Region1", "Region2", "Region3"))
-    period <- c(2005, 2050, 2100)
-    variable <- factor(c("Variable1", "Variable2", "Variable3"))
-    unit <- factor(c("Unit"))
-    long <- expand.grid(model, scenario, region, variable, 
-                        unit, period, 1, KEEP.OUT.ATTRS = FALSE, stringsAsFactors = TRUE)
-    names(long) <- c("model", "scenario", "region", 
-                     "variable", "unit", "period", "value")
-    long$value <- 1:length(long$value)
-    return(long)
-  }
-  
   data <- readdata(file)
   ids <- as.numeric(sub("\\.rds$","",readLines(url(paste0(resultsfolder,"/files")))))
   data <- data[(data$.id %in% ids),]
   
   selection <- callModule(modFilter,"runfilter",data=reactive(data),exclude=".id")
   
-  x <- reactiveValues(out=dummy(), ready=FALSE)
+  x <- reactiveValues(out=NULL, ready=FALSE)
   
-  fullReport <- reactive(readreports(selection()[[".id"]], resultsfolder))
+  fullReport <- reactive(readreports(selection()$x[[".id"]], resultsfolder))
   
   observeEvent(input$load, {
     print("read selected data")
@@ -73,5 +58,5 @@ modRunSelect <- function(input, output, session, file, resultsfolder) {
     x$ready <- TRUE
   })
   
-  return(reactive(list(report=x$out,ready=x$ready,variables=names(selection())[-1],selection=selection)))
+  return(reactive(list(report=x$out,ready=x$ready,variables=names(selection()$x)[-1],selection=selection)))
 }

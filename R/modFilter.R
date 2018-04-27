@@ -13,8 +13,7 @@
 #' @param xdataExclude similar to exclude a vector of filters that should be ignored for xdata. Useful if xdata should
 #' only filtered for a subset of filters applied to data
 #' @param order order the filter should be listed (provided as a vector of filter names). Filter not listed here will be shown after the ones mentioned.
-#' @return a reactive containing the filtered data.table, or if xdata is provided a reactive list with x as the 
-#' filtered data and xdata containing the list of additional, filtered data element.
+#' @return  a reactive list with x as the filtered data and xdata containing the list of additional, filtered data element.
 #' @author Jan Philipp Dietrich
 #' @seealso \code{\link{modFilterUI}}, \code{\link{appModelstats}}
 #' @importFrom shiny updateSliderInput
@@ -74,16 +73,13 @@ modFilter <- function(input, output, session, data, exclude=NULL, showAll=FALSE,
       }
     }
     fvec[is.na(fvec)] <- FALSE
-    for(n in names(xdata)) {
-      xfvec[[n]][is.na(xfvec[[n]])] <- FALSE
-    }
-    if(is.null(xdata)) {
-      out <- data[fvec,]
-    } else {
-      for(n in names(xdata)){
+    out <- list(x=data[fvec,])
+    if(!is.null(xdata)) {
+      for(n in names(xdata)) {
+        xfvec[[n]][is.na(xfvec[[n]])] <- FALSE
         xdata[[n]] <- xdata[[n]][xfvec[[n]],]
       }
-      out <- list(x=data[fvec,], xdata=xdata)
+      out$xdata <- xdata
     }
     
     message("  ..finished selectdata in modFilter (",round(as.numeric(Sys.time()-start,units="secs"),4),"s)")
@@ -146,11 +142,9 @@ modFilter <- function(input, output, session, data, exclude=NULL, showAll=FALSE,
         }
       }
     }
-    if(is.null(xdata)) {
-      out <- data
-    } else {
-      out <- list(x=data, xdata=xdata)
-    }
+    out <- list(x=data)
+    if(!is.null(xdata)) out$xdata <- xdata
+  
     message("  ..finished selectdata in modFilter (",round(as.numeric(Sys.time()-start,units="secs"),4),"s)")
     return(out)
   }

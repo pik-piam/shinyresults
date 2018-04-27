@@ -86,7 +86,7 @@ appModelstats <- function(files=c("https://www.pik-potsdam.de/rd3mod/magpie.rds"
         theme <- mip::theme_mip(size=14)
       }
       
-      ggplot2::ggplot(selection()) + ggplot2::theme(legend.direction="vertical") +
+      ggplot2::ggplot(selection()$x) + ggplot2::theme(legend.direction="vertical") +
         ggplot2::geom_point(ggplot2::aes_string(y=cset(input$yaxis,x$variables),
                                                 x=cset(input$xaxis,x$variables),
                                                 color=cset(input$color,x$variables)),size=5, na.rm=TRUE) +

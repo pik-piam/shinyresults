@@ -39,11 +39,17 @@ appMAgPIE <- function(file="https://www.pik-potsdam.de/rd3mod/magpie.rds", resul
                                     modRunSelectUI("select"))),
               mainPanel(plotOutput("stats")))),
             tabPanel("LinePlot",
-            sidebarLayout(
-            sidebarPanel(modLinePlotUI("lineplot")),
-            mainPanel(
-              plotOutput("lineplot",height = "800px",width = "auto")
-            ))),
+              sidebarLayout(
+                sidebarPanel(modLinePlotUI("lineplot")),
+                mainPanel(plotOutput("lineplot",height = "800px",width = "auto"))
+              )
+            ),
+            tabPanel("AreaPlot",
+                     sidebarLayout(
+                       sidebarPanel(modAreaPlotUI("areaplot")),
+                       mainPanel(plotOutput("areaplot",height = "800px",width = "auto"))
+                     )
+            ),
             tabPanel("Show Data",
               sidebarLayout(
               sidebarPanel(
@@ -57,17 +63,6 @@ appMAgPIE <- function(file="https://www.pik-potsdam.de/rd3mod/magpie.rds", resul
         ),
       mainPanel(
         tabsetPanel(id = "main",type = "tabs",
-                    tabPanel("AreaPlot",
-                             plotOutput("areaplot",height = "800px",width = "auto"),
-                             wellPanel(
-                               fluidRow(
-                                 column(4,
-                                        checkboxInput('exclude_world', 'Exclude Region "World"', value = TRUE, width = NULL)
-                                 )
-                               )
-                             ),
-                             wellPanel(downloadButton('downloadAreaPlot', 'Download Plot'))
-                    ),
                     tabPanel("Table", 
                              dataTableOutput("data"),
                              wellPanel(downloadButton('downloadData', 'Download Data'))
@@ -87,10 +82,6 @@ appMAgPIE <- function(file="https://www.pik-potsdam.de/rd3mod/magpie.rds", resul
     )
   )
   )
-  
-  
-  
-  model <- scenario <- region <- year <- period <- variable <- unit <- NULL
   
   #limit for file upload set to 300 MB
   options(shiny.maxRequestSize = 300*1024^2)
@@ -113,6 +104,7 @@ appMAgPIE <- function(file="https://www.pik-potsdam.de/rd3mod/magpie.rds", resul
     
     rep_full <- callModule(modRunSelect,"select",file=file, resultsfolder=resultsfolder)
     output$lineplot <- callModule(modLinePlot,"lineplot",report=rep_full,validation=reactive(val_full))
+    output$areaplot <- callModule(modAreaPlot,"areaplot",report=rep_full)
     
     observeEvent(rep_full()$variables,{
       #hideTab("full","Show Data")
@@ -127,11 +119,6 @@ appMAgPIE <- function(file="https://www.pik-potsdam.de/rd3mod/magpie.rds", resul
       else trafficlight(x=as.magpie(val$rep_sel,spatial="region",temporal="period",tidy=TRUE),xc=as.magpie(val$val_sel,spatial="region",temporal="period",tidy=TRUE),detailed=FALSE)
     })
     
-    areaplot <- reactive({
-      p <- mipArea(x=if(input$exclude_world) val$rep_sel[val$rep_sel$region!="World",] else val$rep_sel)
-      return(p)
-    })
-    
     output$stats <- renderPlot({
       cset <- function(i,check) {
         if(i %in% check) return(i)
@@ -139,15 +126,12 @@ appMAgPIE <- function(file="https://www.pik-potsdam.de/rd3mod/magpie.rds", resul
       }
       theme <- mip::theme_mip(size=14)
       
-      ggplot2::ggplot(rep_full()$selection()) + ggplot2::theme(legend.direction="vertical") +
+      ggplot2::ggplot(rep_full()$selection()$x) + ggplot2::theme(legend.direction="vertical") +
         ggplot2::geom_point(ggplot2::aes_string(y=cset(input$yaxis,rep_full()$variables),
                                                 x=cset(input$xaxis,rep_full()$variables),
                                                 color=cset(input$color,rep_full()$variables)),size=5, na.rm=TRUE) +
         theme
     }, height=700)
-    
-    output$areaplot <- renderPlot({
-      areaplot()},res = 120)#height = 400, width = 500
     
     output$tf <- renderPlot({
       tf()},res = 120)#height = 400, width = 500
@@ -167,12 +151,6 @@ appMAgPIE <- function(file="https://www.pik-potsdam.de/rd3mod/magpie.rds", resul
       val$rep_sel
     }, options = list(pageLength = 10))
     
-    output$downloadAreaPlot <- downloadHandler(
-      filename = function() { paste("export", '.pdf', sep='') },
-      content = function(file) {
-        ggsave(file, plot = areaplot(), device = "pdf",scale=1,width=20,height=13,units="cm",dpi=150)
-      }
-    )
     output$downloadData <- downloadHandler(
       filename = function() { paste("export", '.csv', sep='') },
       content = function(file) {
@@ -183,7 +161,6 @@ appMAgPIE <- function(file="https://www.pik-potsdam.de/rd3mod/magpie.rds", resul
     )
     
   }
-  
   
   #start the app
   shinyApp(ui = ui, server = server)

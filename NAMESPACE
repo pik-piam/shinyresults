@@ -2,6 +2,8 @@
 
 export(appMAgPIE)
 export(appModelstats)
+export(modAreaPlot)
+export(modAreaPlotUI)
 export(modFilter)
 export(modFilterUI)
 export(modLinePlot)
