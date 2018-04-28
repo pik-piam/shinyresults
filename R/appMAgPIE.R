@@ -95,7 +95,7 @@ appMAgPIE <- function(file="https://www.pik-potsdam.de/rd3mod/magpie.rds", resul
                                                 x=cset(input$xaxis,rep_full()$variables),
                                                 color=cset(input$color,rep_full()$variables)),size=5, na.rm=TRUE) +
         theme
-    })
+    }, height = 700)
     
   }
   
