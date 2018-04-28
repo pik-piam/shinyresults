@@ -12,7 +12,6 @@ modAreaPlotUI <- function(id) {
   tags$div(id=ns("filterbox"),
     modFilterUI(ns("runfilter")),
     tags$hr(),
-    checkboxInput(ns('free_y'), 'Free Y', value = FALSE),
     downloadButton(ns('downloadLinePlot'), 'Download Plot')
   )
 }

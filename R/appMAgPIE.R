@@ -49,38 +49,8 @@ appMAgPIE <- function(file="https://www.pik-potsdam.de/rd3mod/magpie.rds", resul
                        sidebarPanel(modAreaPlotUI("areaplot")),
                        mainPanel(plotOutput("areaplot",height = "800px",width = "auto"))
                      )
-            ),
-            tabPanel("Show Data",
-              sidebarLayout(
-              sidebarPanel(
-                             selectInput('scenario', 'Scenario', "Pending upload",multiple = TRUE),
-                             selectInput('region', 'Region', "Pending upload",multiple = TRUE),
-                             sliderInput('year', 'Year',min=2000,max=2100,value=c(2000,2100),step=10),
-                             selectInput('variable', 'Variable', "Pending upload",multiple = FALSE),
-                             tags$hr(),
-                             checkboxInput('update_plot', 'Update Plot', value = TRUE, width = NULL),
-                             conditionalPanel(condition = "input.valfile != NULL", checkboxInput('show_val', 'Show Validation', value = TRUE, width = NULL))
-        ),
-      mainPanel(
-        tabsetPanel(id = "main",type = "tabs",
-                    tabPanel("Table", 
-                             dataTableOutput("data"),
-                             wellPanel(downloadButton('downloadData', 'Download Data'))
-                    ),
-                    tabPanel("Trafficlight",
-                             plotOutput("tf",height = "200px",width = "auto")
-                    ),
-                    tabPanel("Info", 
-                             h2("Summary"),
-                             verbatimTextOutput("summary"),
-                             h2("General information about the dataset"),
-                             verbatimTextOutput("info")
-                    )
-        )
+            )
       )
-    )
-    )
-  )
   )
   
   #limit for file upload set to 300 MB
@@ -113,12 +83,6 @@ appMAgPIE <- function(file="https://www.pik-potsdam.de/rd3mod/magpie.rds", resul
       updateSelectInput(session, "color",  choices=rep_full()$variables, selected = "user")   
     })
     
-
-    tf <- reactive({
-      if(is.null(val$val_sel)) stop("Validation file needed for trafficlights!")
-      else trafficlight(x=as.magpie(val$rep_sel,spatial="region",temporal="period",tidy=TRUE),xc=as.magpie(val$val_sel,spatial="region",temporal="period",tidy=TRUE),detailed=FALSE)
-    })
-    
     output$stats <- renderPlot({
       cset <- function(i,check) {
         if(i %in% check) return(i)
@@ -131,34 +95,7 @@ appMAgPIE <- function(file="https://www.pik-potsdam.de/rd3mod/magpie.rds", resul
                                                 x=cset(input$xaxis,rep_full()$variables),
                                                 color=cset(input$color,rep_full()$variables)),size=5, na.rm=TRUE) +
         theme
-    }, height=700)
-    
-    output$tf <- renderPlot({
-      tf()},res = 120)#height = 400, width = 500
-    
-    output$summary <- renderPrint({
-      summary(val$rep_sel$value)
     })
-    output$info <- renderPrint({
-      val$rep_full <- rep_full()$report
-      cat(paste(length(levels(val$rep_full$model)),"Model(s)"),
-          paste(length(levels(val$rep_full$scenario)),"Scenario(s)"),
-          paste(length(levels(val$rep_full$region)),"Region(s)"),
-          paste(length(unique(val$rep_full$period)),"Year(s)"),
-          paste(length(levels(val$rep_full$variable)),"Variable(s)"),sep="\n")
-    })
-    output$data <- renderDataTable({
-      val$rep_sel
-    }, options = list(pageLength = 10))
-    
-    output$downloadData <- downloadHandler(
-      filename = function() { paste("export", '.csv', sep='') },
-      content = function(file) {
-        out <- val$rep_sel
-        out <- dcast(out, model + scenario + region + variable + unit ~ period, value.var="value")
-        write.csv(out, file ,row.names = FALSE,quote = FALSE)
-      }
-    )
     
   }
   

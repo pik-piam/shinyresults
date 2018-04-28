@@ -12,20 +12,19 @@ modAreaPlot <- function(input, output, session, report) {
   
   addGroup <- function(report) {
     start <- Sys.time()
-    #message("AddGroup in modAreaPlot..")
-    #if(is.null(report)) return(NULL)
-    #tmp <- extractVariableGroups(report$variable)
-    #message("  ..finished AddGroup in modAreaPlot (",round(as.numeric(Sys.time()-start,units="secs"),4),"s)")
-    return(report)
+    if(is.null(report)) return(NULL)
+    message("AddGroup in modAreaPlot..")
+    tmp <- extractVariableGroups(levels(report$variable))
+    message("  ..finished AddGroup in modAreaPlot (",round(as.numeric(Sys.time()-start,units="secs"),4),"s)")
     return(merge(report,tmp))
   }
   
   selection <- callModule(modFilter, "runfilter",
                           data         = reactive(addGroup(report()$report)), 
-                          exclude      = c("value","unit"), 
+                          exclude      = c("variable","value","unit"), 
                           showAll      = TRUE, 
-                          multiple     = c(variable=FALSE),
-                          order        = c("variable"))
+                          multiple     = c(group=FALSE),
+                          order        = c("group"))
 
   areaplot <- reactive({
     start <- Sys.time()
@@ -45,6 +44,6 @@ modAreaPlot <- function(input, output, session, report) {
   )
   
   return(renderPlot({
-    areaplot()},res = 120))
+    areaplot()}))
   
 }

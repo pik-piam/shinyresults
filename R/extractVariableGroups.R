@@ -12,6 +12,7 @@
 #' shinyresults:::extractVariableGroups(x)
 
 extractVariableGroups <- function(x) {
+  x <- grep("+",x,value=TRUE)
   tmp <- function(x,sep="|+|",ext="") {
     y <- strsplit(x,sep, fixed=TRUE)
     out <- NULL
