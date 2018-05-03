@@ -5,19 +5,22 @@
 #' @param input,output,session Default input, output and session objects coming from shiny
 #' @param file report data. Can be a CSV/MIF file or rds file with a quitte object (saved with saveRDS). file can also be a vector of rds files. NULL by default; in this case the user can upload files directly in the tool
 #' @param resultsfolder folder in which MAgPIE run results are stored. File must come with a overview list called "files" 
+#' @param username username to be used to access file and resultsfolder
+#' @param password password to access file and resultsfolder
 #' @return a reactive containing a merged data.frame containing results of selected runs
 #' @author Jan Philipp Dietrich
 #' @seealso \code{\link{modFilterUI}}, \code{\link{appModelstats}}
 #' @importFrom shiny updateSliderInput withProgress incProgress
 #' @importFrom tools file_path_sans_ext
 #' @importFrom data.table uniqueN
+#' @importFrom curl curl new_handle
 #' @export
 
-modRunSelect <- function(input, output, session, file, resultsfolder) {
+modRunSelect <- function(input, output, session, file, resultsfolder, username=NULL, password=NULL) {
   
-  readdata <- function(file) {
+  readdata <- function(file,username=NULL, password=NULL) {
     if(grepl("https://",file)) {
-      out <- readRDS(gzcon(url(file)))
+      out <- readRDS(gzcon(curl(file, handle=new_handle(username=username, password=password))))
     } else {
       out <- readRDS(file)
     }
@@ -26,12 +29,12 @@ modRunSelect <- function(input, output, session, file, resultsfolder) {
     return(out)
   }
   
-  readreports <- function(ids, resultsfolder) {
+  readreports <- function(ids, resultsfolder, username=NULL, password=NULL) {
     files <- paste0(resultsfolder,ids,".rds")
     fout <- NULL
     withProgress(message = 'Read selected data', value = 0, {
     for(file in files) {
-      fout <- rbind(fout,readdata(file))
+      fout <- rbind(fout,readdata(file, username=username, password=password))
       incProgress(1/length(files), detail = basename(file))
     }
     })
@@ -42,15 +45,23 @@ modRunSelect <- function(input, output, session, file, resultsfolder) {
     return(fout)
   }
   
-  data <- readdata(file)
-  ids <- as.numeric(sub("\\.rds$","",readLines(url(paste0(resultsfolder,"/files")))))
+  readtextfile <- function(file, username=NULL, password=NULL) {
+    if(grepl("https://",file)) {
+      out <- readLines(gzcon(curl(file, handle=new_handle(username=username, password=password))))
+    } else {
+      out <- readLines(file)
+    }
+  }
+  
+  data <- readdata(file, username=username, password=password)
+  ids <- as.numeric(sub("\\.rds$","",readtextfile(paste0(resultsfolder,"/files"), username=username, password=password)))
   data <- data[(data$.id %in% ids),]
   
   selection <- callModule(modFilter,"runfilter",data=reactive(data),exclude=".id")
   
   x <- reactiveValues(out=NULL, ready=FALSE)
   
-  fullReport <- reactive(readreports(selection()$x[[".id"]], resultsfolder))
+  fullReport <- reactive(readreports(selection()$x[[".id"]], resultsfolder, username=username, password=password))
   
   observeEvent(input$load, {
     print("read selected data")
