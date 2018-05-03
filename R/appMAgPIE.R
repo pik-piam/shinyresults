@@ -21,7 +21,14 @@
 #' @importFrom ggplot2 ggsave
 #' @export
 #'
-appMAgPIE <- function(file="https://www.pik-potsdam.de/rd3mod/magpie.rds", resultsfolder="https://www.pik-potsdam.de/rd3mod/magpie/", valfile="https://www.pik-potsdam.de/rd3mod/validation.rds", username=NULL, password=NULL) {
+appMAgPIE <- function(file="https://rse.pik-potsdam.de/data/magpie/results/rev1/overview.rds", 
+                      resultsfolder="https://rse.pik-potsdam.de/data/magpie/results/rev1/", 
+                      valfile="https://rse.pik-potsdam.de/data/magpie/results/rev1/validation.rds", 
+                      username=getOption("appMAgPIE_username"), 
+                      password=getOption("appMAgPIE_password")) {
+  
+  tmp <- try(curl(file,"r",new_handle(username=username,password=password)))
+  if("try-error" %in% class(tmp)) stop("Access denied! Please check username and password!")
   
   #client-sided function
   ui <- fluidPage(
@@ -66,7 +73,7 @@ appMAgPIE <- function(file="https://www.pik-potsdam.de/rd3mod/magpie.rds", resul
     
     if(!is.null(valfile)) {
       if(grepl("https://",valfile)) {
-        val_full <- readRDS(gzcon(url(valfile)))
+        val_full <- readRDS(gzcon(curl(valfile, handle=new_handle(username=username, password=password))))
       } else {
         val_full <- readRDS(valfile)
       }
@@ -79,10 +86,12 @@ appMAgPIE <- function(file="https://www.pik-potsdam.de/rd3mod/magpie.rds", resul
     output$areaplot <- callModule(modAreaPlot,"areaplot",report=rep_full)
     
     observeEvent(rep_full()$variables,{
-      #hideTab("full","Show Data")
-      updateSelectInput(session, "xaxis",  choices=rep_full()$variables, selected = "revision_date")
-      updateSelectInput(session, "yaxis",  choices=rep_full()$variables, selected = "title")
-      updateSelectInput(session, "color",  choices=rep_full()$variables, selected = "user")   
+      if(!setequal(val$variables,rep_full()$variables)) {
+        val$variables <- rep_full()$variables
+        updateSelectInput(session, "xaxis",  choices=val$variables, selected = "revision_date")
+        updateSelectInput(session, "yaxis",  choices=val$variables, selected = "runtime")
+        updateSelectInput(session, "color",  choices=val$variables, selected = "user")   
+      }
     })
     
     output$stats <- renderPlot({
