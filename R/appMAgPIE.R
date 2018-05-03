@@ -19,6 +19,7 @@
 #' @importFrom mip mipLineHistorical theme_mip mipArea
 #' @importFrom reshape2 dcast
 #' @importFrom ggplot2 ggsave
+#' @importFrom plotly renderPlotly ggplotly plotlyOutput
 #' @export
 #'
 appMAgPIE <- function(file="https://rse.pik-potsdam.de/data/magpie/results/rev1/overview.rds", 
@@ -46,7 +47,7 @@ appMAgPIE <- function(file="https://rse.pik-potsdam.de/data/magpie/results/rev1/
                                                 choices = "revision"),
                                     tags$p(),tags$hr(),tags$p(),
                                     modRunSelectUI("select"))),
-              mainPanel(plotOutput("stats")))),
+              mainPanel(plotlyOutput("stats", height="600px", width="auto")))),
             tabPanel("LinePlot",
               sidebarLayout(
                 sidebarPanel(modLinePlotUI("lineplot")),
@@ -56,7 +57,7 @@ appMAgPIE <- function(file="https://rse.pik-potsdam.de/data/magpie/results/rev1/
             tabPanel("AreaPlot",
                      sidebarLayout(
                        sidebarPanel(modAreaPlotUI("areaplot")),
-                       mainPanel(plotOutput("areaplot",height = "800px",width = "auto"))
+                       mainPanel(plotlyOutput("areaplot",height = "800px",width = "auto"))
                      )
             )
       )
@@ -94,19 +95,20 @@ appMAgPIE <- function(file="https://rse.pik-potsdam.de/data/magpie/results/rev1/
       }
     })
     
-    output$stats <- renderPlot({
+    output$stats <- renderPlotly({
       cset <- function(i,check) {
         if(i %in% check) return(i)
         return(check[1])
       }
-      theme <- mip::theme_mip(size=14)
+      theme <- mip::theme_mip(size=10)
       
-      ggplot2::ggplot(rep_full()$selection()$x) + ggplot2::theme(legend.direction="vertical") +
+      p <- ggplot2::ggplot(rep_full()$selection()$x) + ggplot2::theme(legend.direction="vertical") +
         ggplot2::geom_point(ggplot2::aes_string(y=cset(input$yaxis,rep_full()$variables),
                                                 x=cset(input$xaxis,rep_full()$variables),
-                                                color=cset(input$color,rep_full()$variables)),size=5, na.rm=TRUE) +
+                                                color=cset(input$color,rep_full()$variables)), na.rm=TRUE) +
         theme
-    }, height = 700)
+      ggplotly(p)
+    })
     
   }
   

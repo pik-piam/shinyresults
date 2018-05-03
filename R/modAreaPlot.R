@@ -30,10 +30,10 @@ modAreaPlot <- function(input, output, session, report) {
     start <- Sys.time()
     message("Create areaplot in modAreaPlot..")
     if(report()$ready) {
-      p <- mipArea(x = selection()$x)
+      p <- mipArea(x = selection()$x) + mip::theme_mip(size=10)
     } else p <- NULL
     message("  ..finished areaplot in modAreaPlot (",round(as.numeric(Sys.time()-start,units="secs"),4),"s)")
-    return(p)
+    return(ggplotly(p))
   })
   
   output$downloadLinePlot <- downloadHandler(
@@ -43,7 +43,7 @@ modAreaPlot <- function(input, output, session, report) {
     }
   )
   
-  return(renderPlot({
+  return(renderPlotly({
     areaplot()}))
   
 }
