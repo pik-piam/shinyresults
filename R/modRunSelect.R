@@ -7,6 +7,7 @@
 #' @param resultsfolder folder in which MAgPIE run results are stored. File must come with a overview list called "files" 
 #' @param username username to be used to access file and resultsfolder
 #' @param password password to access file and resultsfolder
+#' @param readFilePar read report data files in parallel (faster) (TRUE) or in sequence (FALSE). Current default is FALSE.
 #' @return a reactive containing a merged data.frame containing results of selected runs
 #' @author Jan Philipp Dietrich
 #' @seealso \code{\link{modFilterUI}}, \code{\link{appModelstats}}
@@ -14,9 +15,13 @@
 #' @importFrom tools file_path_sans_ext
 #' @importFrom data.table uniqueN
 #' @importFrom curl curl new_handle
+#' @importFrom parallel detectCores
+#' @importFrom snow makeCluster stopCluster
+#' @importFrom doSNOW registerDoSNOW
+#' @importFrom foreach foreach %dopar%
 #' @export
 
-modRunSelect <- function(input, output, session, file, resultsfolder, username=NULL, password=NULL) {
+modRunSelect <- function(input, output, session, file, resultsfolder, username=NULL, password=NULL,readFilePar=FALSE) {
   
   readdata <- function(file,username=NULL, password=NULL) {
     if(grepl("https://",file)) {
@@ -31,12 +36,22 @@ modRunSelect <- function(input, output, session, file, resultsfolder, username=N
   
   readreports <- function(ids, resultsfolder, username=NULL, password=NULL) {
     files <- paste0(resultsfolder,ids,".rds")
-    fout <- NULL
+    #opts <- list(progress = incProgress(1/length(files), detail = basename(file)))
     withProgress(message = 'Read selected data', value = 0, {
-    for(file in files) {
-      fout <- rbind(fout,readdata(file, username=username, password=password))
-      incProgress(1/length(files), detail = basename(file))
-    }
+      if(readFilePar) {
+        no_cores <- detectCores() - 1
+        cl <- makeCluster(no_cores)
+        registerDoSNOW(cl)
+        fout <- foreach (file=files,.combine = rbind,.export = c("readdata"),.options.snow = list(progress = incProgress(1/length(files), detail = basename(file)))) %dopar% {
+          readdata(file, username=username, password=password)
+        }
+      } else {
+        fout <- NULL  
+        for(file in files) {
+          fout <- rbind(fout,readdata(file, username=username, password=password))
+          incProgress(1/length(files), detail = basename(file))
+        }
+      }
     })
     if (length(levels(fout$scenario)) != length(unique(levels(fout$scenario)))) {
       suffix <- format(as.POSIXct(as.numeric(file_path_sans_ext(basename(files)))/100000, origin="1970-01-01"))

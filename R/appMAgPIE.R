@@ -6,6 +6,7 @@
 #' @param valfile validation data. Can be a CSV/MIF file or rda/RData file with a quitte object (saved with saveRDS). NULL by default; in this case the user can upload files directly in the tool
 #' @param username username to be used to access file and resultsfolder
 #' @param password password to access file and resultsfolder
+#' @param readFilePar read report data files in parallel (faster) (TRUE) or in sequence (FALSE). Current default is FALSE.
 #' @author Florian Humpenoeder, Jan Philipp Dietrich
 #' @importFrom shiny reactiveValues observeEvent updateTextInput observe updateSelectInput reactive hoverOpts uiOutput sliderInput
 #' renderPrint renderDataTable downloadHandler fluidPage navbarPage tabPanel sidebarLayout sidebarPanel
@@ -26,7 +27,8 @@ appMAgPIE <- function(file="https://rse.pik-potsdam.de/data/magpie/results/rev1/
                       resultsfolder="https://rse.pik-potsdam.de/data/magpie/results/rev1/", 
                       valfile="https://rse.pik-potsdam.de/data/magpie/results/rev1/validation.rds", 
                       username=getOption("appMAgPIE_username"), 
-                      password=getOption("appMAgPIE_password")) {
+                      password=getOption("appMAgPIE_password"),
+                      readFilePar=FALSE) {
   
   tmp <- try(curl(file,"r",new_handle(username=username,password=password)))
   if("try-error" %in% class(tmp)) stop("Access denied! Please check username and password!")
@@ -82,7 +84,7 @@ appMAgPIE <- function(file="https://rse.pik-potsdam.de/data/magpie/results/rev1/
       levels(val_full$region) <- sub("World","GLO",levels(val_full$region))
     }
     
-    rep_full <- callModule(modRunSelect,"select",file=file, resultsfolder=resultsfolder, username=username, password=password)
+    rep_full <- callModule(modRunSelect,"select",file=file, resultsfolder=resultsfolder, username=username, password=password, readFilePar=readFilePar)
     output$lineplot <- callModule(modLinePlot,"lineplot",report=rep_full,validation=reactive(val_full))
     output$areaplot <- callModule(modAreaPlot,"areaplot",report=rep_full)
     
