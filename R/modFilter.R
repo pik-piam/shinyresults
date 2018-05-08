@@ -16,76 +16,14 @@
 #' @return  a reactive list with x as the filtered data and xdata containing the list of additional, filtered data element.
 #' @author Jan Philipp Dietrich
 #' @seealso \code{\link{modFilterUI}}, \code{\link{appModelstats}}
-#' @importFrom shiny updateSliderInput
+#' @importFrom shiny updateSliderInput debounce
 #' @importFrom data.table uniqueN
 #' @export
 
 modFilter <- function(input, output, session, data, exclude=NULL, showAll=FALSE, multiple=NULL, xdata=NULL, xdataExclude=NULL, order=NULL) {
   
   x <- reactiveValues()
-  
-  selectdata2 <- function(data,input,filter,xdata,xdataExclude){
-    start <- Sys.time()
-    message("Run selectdata in modFilter..")
-    if(is.null(data)) return(data.frame())
-    fvec <- rep(TRUE,dim(data)[1])
-    xfvec <- list()
-    for(n in names(xdata)) {
-      xfvec[[n]] <- rep(TRUE,dim(xdata[[n]])[1])
-    }
-    for(f in filter) {
-      slf <- paste0("slider",f)
-      if(!is.null(input[[slf]])) {
-        slmax <- max(data[[f]][fvec], na.rm=TRUE)
-        slmin <- min(data[[f]][fvec], na.rm=TRUE)
-        if(x[[slf]]["max"]!=slmax | x[[slf]]["min"]!=slmin) {
-          updateSliderInput(session, slf,   min = slmin, max = slmax,
-                          value = input[[slf]])
-          x[[slf]]["max"] <- slmax
-          x[[slf]]["min"] <- slmin
-        }
-        
-        tmp <- function(fvec,data,min,max) {
-          if(is.factor(data)) data <- as.numeric(levels(data))[data]
-          return(fvec & (data >= min) & (data <= max))
-        }
-        fvec <- tmp(fvec,data[[f]],input[[slf]][1],input[[slf]][2])
-        if(!(f %in% xdataExclude)) {
-          for(n in names(xdata)) {
-            xfvec[[n]] <- tmp(xfvec[[n]],xdata[[n]][[f]],input[[slf]][1],input[[slf]][2])
-          }
-        }
-      } else {
-        sf <- paste0("select",f)
-        if(!is.null(input[[sf]])) {
-          slchoices <- sort(data[[f]][fvec])
-          if(!setequal(slchoices,x[[sf]])) {
-            updateSelectInput(session, sf,  choices=slchoices, selected=input[[sf]])
-            x[[sf]] <- slchoices
-          }
-          fvec <- (fvec & (data[[f]] %in% input[[sf]]))
-          if(!(f %in% xdataExclude)) {
-            for(n in names(xdata)) {
-              xfvec[[n]] <- (xfvec[[n]] & (xdata[[n]][[f]] %in% input[[sf]]))
-            }
-          }
-        }
-      }
-    }
-    fvec[is.na(fvec)] <- FALSE
-    out <- list(x=data[fvec,])
-    if(!is.null(xdata)) {
-      for(n in names(xdata)) {
-        xfvec[[n]][is.na(xfvec[[n]])] <- FALSE
-        xdata[[n]] <- xdata[[n]][xfvec[[n]],]
-      }
-      out$xdata <- xdata
-    }
-    
-    message("  ..finished selectdata in modFilter (",round(as.numeric(Sys.time()-start,units="secs"),4),"s)")
-    return(out)
-  }
-  
+ 
   selectdata <- function(data,input,filter,xdata,xdataExclude){
     start <- Sys.time()
     message("Run selectdata in modFilter..")
@@ -234,12 +172,16 @@ modFilter <- function(input, output, session, data, exclude=NULL, showAll=FALSE,
     message("  ..finished modFilter initialization (",round(as.numeric(Sys.time()-start,units="secs"),4),"s)")
   })
   
+  observe({
+    x$out <- selectdata(data(),input,x$activefilter,xdata,xdataExclude)
+  })
+  
   observeEvent(input$filter, {
     if(!(input$filter %in% x$activefilter)){
       insertUI(
         selector = paste0("#",session$ns("filterend")),
         where = "beforeBegin",
-        ui = selectUI(session,input$filter, x$data[[input$filter]], x$filterclass[input$filter], x$filtermultiple[input$filter])
+        ui = selectUI(session,input$filter, x$out$x[[input$filter]], x$filterclass[input$filter], x$filtermultiple[input$filter])
       )
       x$activefilter <- c(x$activefilter,input$filter)
     }
@@ -260,8 +202,10 @@ modFilter <- function(input, output, session, data, exclude=NULL, showAll=FALSE,
     }
   })
   
-  out <- reactive(selectdata(data(),input,x$activefilter,xdata,xdataExclude))
-  output$observations <- renderText(paste0(ifelse(is.null(dim(out())),dim(out()$x)[1],dim(out())[1])," observations"))
+
   
-  return(out)
+  #out <- reactive(selectdata(data(),input,x$activefilter,xdata,xdataExclude))
+  output$observations <- renderText(paste0(dim(x$out$x)[1]," observations"))
+  
+  return(debounce(reactive(x$out),500))
 }
