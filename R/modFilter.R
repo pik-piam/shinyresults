@@ -102,9 +102,6 @@ modFilter <- function(input, output, session, data, exclude=NULL, showAll=FALSE,
                                   max = max,
                                   value = c(min(data, na.rm=TRUE),max(data, na.rm=TRUE)),
                                   ticks = FALSE,
-                                  step=60,
-                                  sep="",
-                                  timezone="CET",
                                   timeFormat = "%F %H:%M")))
     } else if(class %in% c("integer","numeric")) {
       min <- floor(min(data, na.rm=TRUE))
