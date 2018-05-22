@@ -30,6 +30,7 @@ modAreaPlot <- function(input, output, session, report) {
     start <- Sys.time()
     message("Create areaplot in modAreaPlot..")
     if(report()$ready) {
+      if(nrow(selection()$x)>5000) stop("Too many data points (>5000)! Please filter data!")
       p <- mipArea(x = selection()$x) + mip::theme_mip(size=10)
     } else p <- NULL
     message("  ..finished areaplot in modAreaPlot (",round(as.numeric(Sys.time()-start,units="secs"),4),"s)")
