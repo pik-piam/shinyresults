@@ -11,12 +11,17 @@
 
 modLinePlot <- function(input, output, session, report, validation) {
   
+  reduceVariables <- function(x) {
+    if(!is.null(levels(x$variable))) levels(x$variable) <- gsub("\\|\\++\\|","|",levels(x$variable))
+    return(x)
+  }
+  
   selection <- callModule(modFilter, "runfilter",
-                          data         = reactive(report()$report), 
+                          data         = reactive(reduceVariables(report()$report)), 
                           exclude      = c("value","unit"), 
                           showAll      = TRUE, 
                           multiple     = c(variable=FALSE),
-                          xdata        = list(validation=validation()),
+                          xdata        = list(validation=reduceVariables(validation())),
                           xdataExclude = c("scenario","period"),
                           order        = c("variable"))
                         
