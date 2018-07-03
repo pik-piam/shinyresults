@@ -82,6 +82,7 @@ appMAgPIE <- function(file="https://rse.pik-potsdam.de/data/magpie/results/rev1/
       }
       val_full <- val_full[!is.na(val_full$value),]
       levels(val_full$region) <- sub("World","GLO",levels(val_full$region))
+      val_full <- val_full[val_full$period > 1950,] #show validation data only for years > 1950
     }
     
     rep_full <- callModule(modRunSelect,"select",file=file, resultsfolder=resultsfolder, username=username, password=password, readFilePar=readFilePar)
