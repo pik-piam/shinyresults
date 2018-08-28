@@ -23,12 +23,13 @@
 
 modRunSelect <- function(input, output, session, file, resultsfolder, username=NULL, password=NULL,readFilePar=FALSE) {
   
-  readdata <- function(file,username=NULL, password=NULL) {
+  readdata <- function(file,username=NULL, password=NULL,addfilename=FALSE) {
     if(grepl("https://",file)) {
       out <- readRDS(gzcon(curl(file, handle=new_handle(username=username, password=password))))
     } else {
       out <- readRDS(file)
     }
+    if(addfilename) out$filename <- as.factor(file)
     if("date" %in% names(out)) out$date <- as.POSIXct(out$date, origin="1970-01-01")
     if("revision_date" %in% names(out)) out$revision_date <- as.POSIXct(out$revision_date, origin="1970-01-01")
     return(out)
@@ -36,27 +37,30 @@ modRunSelect <- function(input, output, session, file, resultsfolder, username=N
   
   readreports <- function(ids, resultsfolder, username=NULL, password=NULL) {
     files <- paste0(resultsfolder,ids,".rds")
-    #opts <- list(progress = incProgress(1/length(files), detail = basename(file)))
     withProgress(message = 'Read selected data', value = 0, {
       if(readFilePar) {
         no_cores <- detectCores() - 1
         cl <- makeCluster(no_cores)
         registerDoSNOW(cl)
         fout <- foreach (file=files,.combine = rbind,.export = c("readdata"),.options.snow = list(progress = incProgress(1/length(files), detail = basename(file)))) %dopar% {
-          readdata(file, username=username, password=password)
+          readdata(file, username=username, password=password, addfilename = TRUE)
         }
       } else {
         fout <- NULL  
         for(file in files) {
-          fout <- rbind(fout,readdata(file, username=username, password=password))
+          fout <- rbind(fout,readdata(file, username=username, password=password, addfilename = TRUE))
           incProgress(1/length(files), detail = basename(file))
         }
       }
     })
-    if (length(levels(fout$scenario)) != length(unique(levels(fout$scenario)))) {
-      suffix <- format(as.POSIXct(as.numeric(file_path_sans_ext(basename(files)))/100000, origin="1970-01-01"))
-      levels(fout$scenario) <- paste(levels(fout$scenario),suffix)
+    if (nlevels(fout$scenario) != nlevels(fout$filename)) {
+      levels(fout$filename) <- format(as.POSIXct(as.numeric(file_path_sans_ext(basename(levels(fout$filename))))/100000, origin="1970-01-01"))
+      fout$scenario <- as.factor(paste(fout$scenario,fout$filename))
+      short <- sub(" .*$","",levels(fout$scenario))
+      unique <- (!duplicated(short) & !duplicated(short, fromLast = TRUE))
+      levels(fout$scenario)[unique] <- short[unique]
     }
+    fout$filename <- NULL
     return(fout)
   }
   
