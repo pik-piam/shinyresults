@@ -36,7 +36,7 @@ modRunSelect <- function(input, output, session, file, resultsfolder, username=N
   }
   
   readreports <- function(ids, resultsfolder, username=NULL, password=NULL) {
-    files <- paste0(resultsfolder,ids,".rds")
+    files <- paste0(resultsfolder,"/",ids,".rds")
     withProgress(message = 'Read selected data', value = 0, {
       if(readFilePar) {
         no_cores <- detectCores() - 1
@@ -73,8 +73,12 @@ modRunSelect <- function(input, output, session, file, resultsfolder, username=N
   }
   
   data <- readdata(file, username=username, password=password)
-  ids <- as.numeric(sub("\\.rds$","",readtextfile(paste0(resultsfolder,"/files"), username=username, password=password)))
-  data <- data[(data$.id %in% ids),]
+  if(grepl("https://",file)) {
+    ids <- as.numeric(sub("\\.rds$","",readtextfile(paste0(resultsfolder,"/files"), username=username, password=password)))
+    data <- data[(data$.id %in% ids),]
+  } else {
+   data <- data[file.exists(paste0(data$.id,".rds")),]
+  }
   
   selection <- callModule(modFilter,"runfilter",data=reactive(data),exclude=".id")
   

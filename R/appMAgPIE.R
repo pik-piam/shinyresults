@@ -30,8 +30,10 @@ appMAgPIE <- function(file="https://rse.pik-potsdam.de/data/magpie/results/rev1/
                       password=getOption("appMAgPIE_password"),
                       readFilePar=FALSE) {
   
-  tmp <- try(curl(file,"r",new_handle(username=username,password=password)))
-  if("try-error" %in% class(tmp)) stop("Access denied! Please check username and password!")
+  if(grepl("https://",file)) {
+    tmp <- try(curl(file,"r",new_handle(username=username,password=password)))
+    if("try-error" %in% class(tmp)) stop("Access denied! Please check username and password!")
+  }
   
   #client-sided function
   ui <- fluidPage(
