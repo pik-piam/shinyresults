@@ -77,7 +77,7 @@ modRunSelect <- function(input, output, session, file, resultsfolder, username=N
     ids <- as.numeric(sub("\\.rds$","",readtextfile(paste0(resultsfolder,"/files"), username=username, password=password)))
     data <- data[(data$.id %in% ids),]
   } else {
-   data <- data[file.exists(paste0(data$.id,".rds")),]
+   data <- data[file.exists(paste0(resultsfolder,"/",data$.id,".rds")),]
   }
   
   selection <- callModule(modFilter,"runfilter",data=reactive(data),exclude=".id")
