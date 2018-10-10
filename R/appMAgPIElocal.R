@@ -46,7 +46,7 @@ appMAgPIElocal <- function(folder="output/", valfile=NULL) {
            call. = FALSE)
       valfile <- NULL
     } else {
-      a <- quitte::as.quitte(valfile)
+      a <- quitte::read.quitte(valfile, check.duplicates=FALSE)
       a <- a[!is.na(a$value),]
       valfile <- sub(".mif$",".rds",valfile)
       saveRDS(a,valfile)
