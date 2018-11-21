@@ -30,8 +30,15 @@ modRunSelect <- function(input, output, session, file, resultsfolder, username=N
       out <- readRDS(file)
     }
     if(addfilename) out$filename <- as.factor(file)
-    if("date" %in% names(out)) out$date <- as.POSIXct(out$date, origin="1970-01-01")
-    if("revision_date" %in% names(out)) out$revision_date <- as.POSIXct(out$revision_date, origin="1970-01-01")
+    
+    conv_date <- function(x) {
+      tmp <- try(as.POSIXct(x, origin="1970-01-01"), silent=TRUE)
+      if("try-error" %in% class(tmp)) return(x) 
+      else return(tmp)
+    }
+    
+    if("date" %in% names(out)) out$date <- conv_date(out$date)
+    if("revision_date" %in% names(out)) out$revision_date <- conv_date(out$revision_date)
     return(out)
   }
   
