@@ -19,6 +19,7 @@
 #' @importFrom snow makeCluster stopCluster
 #' @importFrom doSNOW registerDoSNOW
 #' @importFrom foreach foreach %dopar%
+#' @importFrom mip shorten_legend
 #' @export
 
 modRunSelect <- function(input, output, session, file, resultsfolder, username=NULL, password=NULL,readFilePar=FALSE) {
@@ -61,9 +62,15 @@ modRunSelect <- function(input, output, session, file, resultsfolder, username=N
       }
     })
     if (nlevels(fout$scenario) != nlevels(fout$filename)) {
-      levels(fout$filename) <- format(as.POSIXct(as.numeric(file_path_sans_ext(basename(levels(fout$filename))))/100000, origin="1970-01-01"))
-      fout$scenario <- as.factor(paste(fout$scenario,fout$filename))
-      short <- sub(" .*$","",levels(fout$scenario))
+      # test two ways to distinguish identical runs. Prefer option2 (read date from file name) but use option1 (reduce file name to distinct components) as fallback
+      option1 <- mip::shorten_legend(gsub("/"," ",levels(fout$filename),fixed=TRUE),identical_only = TRUE)
+      option2 <- suppressWarnings(format(as.POSIXct(as.numeric(file_path_sans_ext(basename(levels(fout$filename))))/100000, origin="1970-01-01")))
+      option2[is.na(option2)] <- option1[is.na(option2)]
+      levels(fout$filename) <- option2
+      tmpsep <- " #TMPSEPARATOR# "
+      fout$scenario <- as.factor(paste0(fout$scenario,tmpsep,fout$filename))
+      short <- sub(paste0(tmpsep,".*$"),"",levels(fout$scenario))
+      levels(fout$scenario) <- sub(tmpsep," ",levels(fout$scenario))
       unique <- (!duplicated(short) & !duplicated(short, fromLast = TRUE))
       levels(fout$scenario)[unique] <- short[unique]
     }
