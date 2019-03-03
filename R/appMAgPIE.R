@@ -8,7 +8,7 @@
 #' @param password password to access file and resultsfolder
 #' @param readFilePar read report data files in parallel (faster) (TRUE) or in sequence (FALSE). Current default is FALSE.
 #' @author Florian Humpenoeder, Jan Philipp Dietrich
-#' @importFrom shiny reactiveValues observeEvent updateTextInput observe updateSelectInput reactive hoverOpts uiOutput sliderInput
+#' @importFrom shiny appendTab tagList isolate div insertTab reactiveValues observeEvent updateTextInput observe updateSelectInput reactive hoverOpts uiOutput sliderInput
 #' renderPrint renderDataTable downloadHandler fluidPage navbarPage tabPanel sidebarLayout sidebarPanel
 #' fileInput tags selectInput mainPanel tabsetPanel wellPanel fluidRow column radioButtons conditionalPanel
 #' checkboxInput checkboxGroupInput numericInput textInput downloadButton dataTableOutput h2 verbatimTextOutput
@@ -35,9 +35,42 @@ appMAgPIE <- function(file="https://rse.pik-potsdam.de/data/magpie/results/rev1/
     if("try-error" %in% class(tmp)) stop("Access denied! Please check username and password!")
   }
   
+  ### Can be deleted once the action button is working.
+  # actionButUI = function(id, label=NULL) {
+  #   ns = NS(id)
+  #   shiny::tagList(
+  #     actionButton(ns("button"), label = label)  
+  #   )
+  # }
+  # 
+  # actionBut = function(input, output, session, tabsetPanel_id, counter, rep_full, val_full) {
+  #   ## do some environment hacking: Get the `session` variabe from the
+  #   ## environment that invoked `callModule`.
+  #   #parentSession <- get("session", envir = parent.frame(2))
+  #   parentSession <- .subset2(session, "parent")
+  #   
+  #   ns <- session$ns
+  #   observeEvent(input$button, {
+  #     counter$Plot <- counter$Plot+1
+  #     insertTab(inputId = tabsetPanel_id(), 
+  #               tabPanel(paste0("LinePlot",counter$Plot),
+  #                        sidebarLayout(
+  #                          sidebarPanel(modLinePlotUI(ns(paste0("lineplot",counter$Plot)))),
+  #                          mainPanel(plotOutput(ns(paste0("lineplot",counter$Plot)),height = "800px",width = "auto"))
+  #                        )
+  #               ),target = paste0("LinePlot",counter$Plot-1), position = "after", session = parentSession
+  #     )
+  #     output[[paste0("lineplot",counter$Plot)]] <- callModule(modLinePlot,paste0("lineplot",counter$Plot),report=rep_full,validation=reactive(val_full))
+  #   })
+  # }
+  
   #client-sided function
   ui <- fluidPage(
-          tabsetPanel(id="full", type="tabs",
+    div(style = "position:absolute;right:1em;", 
+        #actionButUI("append_tab", "Add LinePlot")
+        actionButton("button", label = "Add LinePlot")
+    ),
+    tabsetPanel(id="append_tab", type="tabs",
             tabPanel("Select Data",sidebarLayout(
               sidebarPanel(tags$div(id="navigation",
                                     selectInput(inputId = "xaxis",
@@ -52,10 +85,10 @@ appMAgPIE <- function(file="https://rse.pik-potsdam.de/data/magpie/results/rev1/
                                     tags$p(),tags$hr(),tags$p(),
                                     modRunSelectUI("select"))),
               mainPanel(plotlyOutput("stats", height="600px", width="auto")))),
-            tabPanel("LinePlot",
+            tabPanel("LinePlot1",
               sidebarLayout(
-                sidebarPanel(modLinePlotUI("lineplot")),
-                mainPanel(plotOutput("lineplot",height = "800px",width = "auto"))
+                sidebarPanel(modLinePlotUI("lineplot1")),
+                mainPanel(plotOutput("lineplot1",height = "800px",width = "auto"))
               )
             ),
             tabPanel("AreaPlot",
@@ -87,8 +120,27 @@ appMAgPIE <- function(file="https://rse.pik-potsdam.de/data/magpie/results/rev1/
       val_full <- val_full[val_full$period > 1950,] #show validation data only for years > 1950
     }
     
+    counter <- reactiveValues(Plot = 1)
+
     rep_full <- callModule(modRunSelect,"select",file=file, resultsfolder=resultsfolder, username=username, password=password, readFilePar=readFilePar)
-    output$lineplot <- callModule(modLinePlot,"lineplot",report=rep_full,validation=reactive(val_full))
+    #output$lineplot1 <- callModule(modLinePlot,"lineplot1",report=rep_full,validation=reactive(val_full))
+    #callModule(actionBut, "append_tab", reactive({input$tabs}), counter, rep_full, val_full)
+    
+    #In development. Works at the moment only if the LinePlots are added before loading the data.
+    observeEvent(input$button, {
+      counter$Plot <- counter$Plot+1
+      appendTab(inputId = "append_tab", 
+                tabPanel(paste0("LinePlot",counter$Plot),
+                         sidebarLayout(
+                           sidebarPanel(modLinePlotUI(paste0("lineplot",counter$Plot))),
+                           mainPanel(plotOutput(paste0("lineplot",counter$Plot),height = "800px",width = "auto")))))
+                #target = paste0("LinePlot",counter$Plot-1), position = "after")
+    })
+    
+    observe({
+      output[[paste0("lineplot",counter$Plot)]] <- callModule(modLinePlot,paste0("lineplot",counter$Plot),report=rep_full,validation=reactive(val_full))
+    })
+
     output$areaplot <- callModule(modAreaPlot,"areaplot",report=rep_full)
     
     observeEvent(rep_full()$variables,{
