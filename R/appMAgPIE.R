@@ -1,9 +1,9 @@
 #' @title appMAgPIE
-#' @description appToolMAgPIE allows to explore and visualize time series of modelling results.
+#' @description appMAgPIE allows to explore and visualize time series of modelling results.
 #' 
-#' @param file report data. Can be a CSV/MIF file or rds file with a quitte object (saved with saveRDS). file can also be a vector of rds files. NULL by default; in this case the user can upload files directly in the tool
+#' @param file Overview file in rds format containing an overview about all available runs.
 #' @param resultsfolder folder in which MAgPIE run results are stored. File must come with a overview list called "files" 
-#' @param valfile validation data. Can be a CSV/MIF file or rda/RData file with a quitte object (saved with saveRDS). NULL by default; in this case the user can upload files directly in the tool
+#' @param valfile validation data. Can be a CSV/MIF file or rds file with a quitte object (saved with saveRDS). NULL by default; in this case the user can upload files directly in the tool
 #' @param username username to be used to access file and resultsfolder
 #' @param password password to access file and resultsfolder
 #' @param readFilePar read report data files in parallel (faster) (TRUE) or in sequence (FALSE). Current default is FALSE.
@@ -109,12 +109,28 @@ appMAgPIE <- function(file="https://rse.pik-potsdam.de/data/magpie/results/rev1/
     #initialize reactive value
     val <- reactiveValues()
     
+    # read valfile
     if(!is.null(valfile)) {
-      if(grepl("https://",valfile)) {
-        val_full <- readRDS(gzcon(curl(valfile, handle=new_handle(username=username, password=password))))
+      if(grepl("\\.mif$",valfile)) {
+        if (!requireNamespace("quitte", quietly = TRUE)) {
+          stop("Package \"quitte\" needed to handle mif files. Validation file will be ignored!",
+               call. = FALSE)
+        } 
+        isMIF <- TRUE
       } else {
-        val_full <- readRDS(valfile)
+        isMIF <- FALSE
       }
+      
+      if(grepl("https://",valfile)) {
+        valfile <- gzcon(curl(valfile, handle=new_handle(username=username, password=password)))
+      }
+      
+      if(isMIF) {
+        val_full <- quitte::read.quitte(valfile, check.duplicates=FALSE)
+      } else {
+        val_full <- readRDS(valfile) 
+      }
+      
       val_full <- val_full[!is.na(val_full$value),]
       levels(val_full$region) <- sub("World","GLO",levels(val_full$region))
       val_full <- val_full[val_full$period > 1950,] #show validation data only for years > 1950
