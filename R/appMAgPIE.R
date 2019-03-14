@@ -122,7 +122,7 @@ appMAgPIE <- function(file="https://rse.pik-potsdam.de/data/magpie/results/rev1/
                 #target = paste0("LinePlot",counter$Plot-1), position = "after")
     })
     
-    observe({
+    observeEvent(counter$Plot,{
       output[[paste0("lineplot",counter$Plot)]] <- callModule(modLinePlot,paste0("lineplot",counter$Plot),report=rep_full,validation=reactive(val_full))
     })
 

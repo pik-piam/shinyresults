@@ -17,6 +17,7 @@ modFilterUI <- function(id) {
                        choices = "")
              ),
              tags$div(id=ns("filterend")),
+             #actionButton(ns("fixme"), label = "Fix me!"),
              tags$hr(),
              textOutput(ns("observations"))
            )

@@ -181,6 +181,21 @@ modFilter <- function(input, output, session, data, exclude=NULL, showAll=FALSE,
     initialize(input,session,data,x,exclude,order,multiple)
   })
   
+  # observeEvent(input$fixme,{
+  #   print("HUHU")
+  #   for(xf in x$filter){
+  #     print(xf)
+  #     removeUI(
+  #       selector = paste0("#",session$ns(paste0("div",escapeRegex(xf))))
+  #     )
+  #     insertUI(
+  #       selector = paste0("#",session$ns("filterend")),
+  #       where = "beforeBegin",
+  #       ui = selectUI(session,xf, x$data[[xf]], x$filterclass[xf], x$filtermultiple[xf])
+  #     )
+  #   }
+  # })
+  
   observe({
     x$out <- selectdata(data(),input,x$activefilter,xdata,xdataExclude)
   })
