@@ -35,35 +35,6 @@ appMAgPIE <- function(file="https://rse.pik-potsdam.de/data/magpie/results/rev1/
     if("try-error" %in% class(tmp)) stop("Access denied! Please check username and password!")
   }
   
-  ### Can be deleted once the action button is working.
-  # actionButUI = function(id, label=NULL) {
-  #   ns = NS(id)
-  #   shiny::tagList(
-  #     actionButton(ns("button"), label = label)  
-  #   )
-  # }
-  # 
-  # actionBut = function(input, output, session, tabsetPanel_id, counter, rep_full, val_full) {
-  #   ## do some environment hacking: Get the `session` variabe from the
-  #   ## environment that invoked `callModule`.
-  #   #parentSession <- get("session", envir = parent.frame(2))
-  #   parentSession <- .subset2(session, "parent")
-  #   
-  #   ns <- session$ns
-  #   observeEvent(input$button, {
-  #     counter$Plot <- counter$Plot+1
-  #     insertTab(inputId = tabsetPanel_id(), 
-  #               tabPanel(paste0("LinePlot",counter$Plot),
-  #                        sidebarLayout(
-  #                          sidebarPanel(modLinePlotUI(ns(paste0("lineplot",counter$Plot)))),
-  #                          mainPanel(plotOutput(ns(paste0("lineplot",counter$Plot)),height = "800px",width = "auto"))
-  #                        )
-  #               ),target = paste0("LinePlot",counter$Plot-1), position = "after", session = parentSession
-  #     )
-  #     output[[paste0("lineplot",counter$Plot)]] <- callModule(modLinePlot,paste0("lineplot",counter$Plot),report=rep_full,validation=reactive(val_full))
-  #   })
-  # }
-  
   #client-sided function
   ui <- fluidPage(
     div(style = "position:absolute;right:1em;", 
@@ -139,8 +110,6 @@ appMAgPIE <- function(file="https://rse.pik-potsdam.de/data/magpie/results/rev1/
     counter <- reactiveValues(Plot = 1)
 
     rep_full <- callModule(modRunSelect,"select",file=file, resultsfolder=resultsfolder, username=username, password=password, readFilePar=readFilePar)
-    #output$lineplot1 <- callModule(modLinePlot,"lineplot1",report=rep_full,validation=reactive(val_full))
-    #callModule(actionBut, "append_tab", reactive({input$tabs}), counter, rep_full, val_full)
     
     #In development. Works at the moment only if the LinePlots are added before loading the data.
     observeEvent(input$button, {
@@ -157,11 +126,11 @@ appMAgPIE <- function(file="https://rse.pik-potsdam.de/data/magpie/results/rev1/
       output[[paste0("lineplot",counter$Plot)]] <- callModule(modLinePlot,paste0("lineplot",counter$Plot),report=rep_full,validation=reactive(val_full))
     })
 
-    output$areaplot <- callModule(modAreaPlot,"areaplot",report=rep_full)
+    #output$areaplot <- callModule(modAreaPlot,"areaplot",report=rep_full)
     
-    observeEvent(rep_full()$variables,{
-      if(!setequal(val$variables,rep_full()$variables)) {
-        val$variables <- rep_full()$variables
+    observeEvent(rep_full$variables(),{
+      if(!setequal(val$variables,rep_full$variables())) {
+        val$variables <- rep_full$variables()
         updateSelectInput(session, "xaxis",  choices=val$variables, selected = "revision_date")
         updateSelectInput(session, "yaxis",  choices=val$variables, selected = "runtime")
         updateSelectInput(session, "color",  choices=val$variables, selected = "user")   
@@ -169,17 +138,19 @@ appMAgPIE <- function(file="https://rse.pik-potsdam.de/data/magpie/results/rev1/
     })
     
     output$stats <- renderPlotly({
+      start <- Sys.time()
+      message("Create OverviewPlot in appMAgPIE..")
       cset <- function(i,check) {
         if(i %in% check) return(i)
         return(check[1])
       }
       theme <- mip::theme_mip(size=10)
-      
-      p <- ggplot2::ggplot(rep_full()$selection()$x) + ggplot2::theme(legend.direction="vertical") +
-        ggplot2::geom_point(ggplot2::aes_string(y=cset(input$yaxis,rep_full()$variables),
-                                                x=cset(input$xaxis,rep_full()$variables),
-                                                color=cset(input$color,rep_full()$variables)), na.rm=TRUE) +
+      p <- ggplot2::ggplot(rep_full$selection()$x) + ggplot2::theme(legend.direction="vertical") +
+        ggplot2::geom_point(ggplot2::aes_string(y=cset(input$yaxis,rep_full$variables()),
+                                                x=cset(input$xaxis,rep_full$variables()),
+                                                color=cset(input$color,rep_full$variables())), na.rm=TRUE) +
         theme
+      message("  ..finished preparing OverviewPlot in appMAgPIE (",round(as.numeric(Sys.time()-start,units="secs"),4),"s)")
       ggplotly(p)
     })
     

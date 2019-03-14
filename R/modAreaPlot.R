@@ -24,7 +24,8 @@ modAreaPlot <- function(input, output, session, report) {
                           exclude      = c("variable","value","unit"), 
                           showAll      = TRUE, 
                           multiple     = c(group=FALSE),
-                          order        = c("group"))
+                          order        = c("group"),
+                          name         = "AreaPlot")
 
   areaplot <- reactive({
     start <- Sys.time()

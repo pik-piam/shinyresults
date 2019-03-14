@@ -94,17 +94,24 @@ modRunSelect <- function(input, output, session, file, resultsfolder, username=N
    data <- data[file.exists(paste0(resultsfolder,"/",data$.id,".rds")),]
   }
   
-  selection <- callModule(modFilter,"runfilter",data=reactive(data),exclude=".id")
+  selection <- callModule(modFilter,"runfilter",data=reactive(data),exclude=".id",name="RunSelect")
   
   x <- reactiveValues(out=NULL, ready=FALSE)
   
   fullReport <- reactive(readreports(selection()$x[[".id"]], resultsfolder, username=username, password=password))
   
   observeEvent(input$load, {
-    print("read selected data")
+    start <- Sys.time()
+    message("Read data in modRunSelect..")
     x$out <- fullReport()
     x$ready <- TRUE
+    message("  ..finished reading data in modRunSelect (",round(as.numeric(Sys.time()-start,units="secs"),4),"s)")
   })
-  
-  return(reactive(list(report=x$out,ready=x$ready,variables=names(selection()$x)[-1],selection=selection)))
+  out <- reactiveValues()
+  out$report <- reactive(x$out)
+  out$ready <- reactive(x$ready)
+  out$variables <- reactive(names(selection()$x)[-1])
+  out$selection <- selection
+  return(out)
+  #return(reactiveValues(report=x$out,ready=x$ready,variables=names(selection()$x)[-1],selection=selection)))
 }

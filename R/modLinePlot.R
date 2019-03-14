@@ -17,19 +17,21 @@ modLinePlot <- function(input, output, session, report, validation) {
   }
   
   selection <- callModule(modFilter, "runfilter",
-                          data         = reactive(reduceVariables(report()$report)), 
+                          #data         = reactive(reduceVariables(report$report())), 
+                          data         = report$report,
                           exclude      = c("value","unit"), 
                           showAll      = TRUE, 
                           multiple     = c(variable=FALSE),
                           xdata        = list(validation=reduceVariables(validation())),
                           xdataExclude = c("scenario","period"),
-                          order        = c("variable"))
+                          order        = c("variable"),
+                          name         = "LinePlot")
                         
 
   lineplot <- reactive({
     start <- Sys.time()
     message("Create lineplot in modLinePlot..")
-    if(report()$ready) {
+    if(report$ready()) {
       if(input$show_val) {
         validation <- selection()$xdata$validation
       } else {

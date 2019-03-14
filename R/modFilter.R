@@ -13,6 +13,7 @@
 #' @param xdataExclude similar to exclude a vector of filters that should be ignored for xdata. Useful if xdata should
 #' only filtered for a subset of filters applied to data
 #' @param order order the filter should be listed (provided as a vector of filter names). Filter not listed here will be shown after the ones mentioned.
+#' @param name name used to identify the filter in the log 
 #' @return  a reactive list with x as the filtered data and xdata containing the list of additional, filtered data element.
 #' @author Jan Philipp Dietrich
 #' @seealso \code{\link{modFilterUI}}, \code{\link{appModelstats}}
@@ -20,14 +21,17 @@
 #' @importFrom data.table uniqueN
 #' @export
 
-modFilter <- function(input, output, session, data, exclude=NULL, showAll=FALSE, multiple=NULL, xdata=NULL, xdataExclude=NULL, order=NULL) {
+modFilter <- function(input, output, session, data, exclude=NULL, showAll=FALSE, multiple=NULL, xdata=NULL, xdataExclude=NULL, order=NULL, name=NULL) {
+  
+  if(!is.null(name)) name <- paste0(".:|",name,"|:. ")
   
   x <- reactiveValues()
- 
+  x$initialized <- FALSE
+  
   selectdata <- function(data,input,filter,xdata,xdataExclude){
     start <- Sys.time()
-    message("Run selectdata in modFilter..")
     if(is.null(data)) return(data.frame())
+    message("Run selectdata in modFilter ",name,"..")
     data <- as.data.table(data)
     for(i in names(xdata)) xdata[[i]] <- as.data.table(xdata[[i]])
     for(f in filter) {
@@ -83,7 +87,7 @@ modFilter <- function(input, output, session, data, exclude=NULL, showAll=FALSE,
     out <- list(x=data)
     if(!is.null(xdata)) out$xdata <- xdata
   
-    message("  ..finished selectdata in modFilter (",round(as.numeric(Sys.time()-start,units="secs"),4),"s)")
+    message("  ..finished selectdata in modFilter ",name," (",round(as.numeric(Sys.time()-start,units="secs"),4),"s)")
     return(out)
   }
   
@@ -128,48 +132,57 @@ modFilter <- function(input, output, session, data, exclude=NULL, showAll=FALSE,
     }
   }
 
-  
-  observeEvent(data(),{
-    start <- Sys.time()
-    message("Initialize modFilter..")
-    x$data <- data()
-    nelem <- apply(x$data,2,uniqueN)
-    x$filter <- names(x$data)[!(names(x$data)%in%exclude) & nelem>=1]
-    if(!is.null(order)) x$filter <- c(intersect(order,x$filter),setdiff(x$filter,order))
-    x$filterclass <- sapply(x$data,function(x)return(class(x)[1]))
-    x$filtermultiple <- multiple
-    x$filtermultiple[x$filter[!(x$filter %in% names(multiple))]] <- TRUE
-    for(f in x$activefilter) {
-      removeUI(
-        selector = paste0("#",session$ns(paste0("div",escapeRegex(f))))
-      )
-    }
-    x$activefilter <- NULL
-    if(showAll) {
-      removeUI(selector = paste0("#",session$ns("filterselector")))
-      for(xf in x$filter){
-        insertUI(
-          selector = paste0("#",session$ns("filterend")),
-          where = "beforeBegin",
-          ui = selectUI(session,xf, x$data[[xf]], x$filterclass[xf], x$filtermultiple[xf])
+
+  initialize <- function(input,session,data,x,exclude,order,multiple) {
+    if(!is.null(data())) {
+      start <- Sys.time()
+      message("Initialize modFilter ",name,"..")
+      x$data <- data()
+      nelem <- apply(x$data,2,uniqueN)
+      x$filter <- names(x$data)[!(names(x$data)%in%exclude) & nelem>=1]
+      if(!is.null(order)) x$filter <- c(intersect(order,x$filter),setdiff(x$filter,order))
+      x$filterclass <- sapply(x$data,function(x)return(class(x)[1]))
+      x$filtermultiple <- multiple
+      x$filtermultiple[x$filter[!(x$filter %in% names(multiple))]] <- TRUE
+      for(f in x$activefilter) {
+        removeUI(
+          selector = paste0("#",session$ns(paste0("div",escapeRegex(f))))
         )
       }
-      x$activefilter <- x$filter
-    } else {
-      updateSelectInput(session, "filter", choices=x$filter)
-      if(input$filter==x$filter[1]) {
-        insertUI(
-        selector = paste0("#",session$ns("filterend")),
-        where = "beforeBegin",
-        ui = selectUI(session,input$filter, x$data[[input$filter]], x$filterclass[input$filter], x$filtermultiple[input$filter])
-      )
-      x$activefilter <- c(x$activefilter,input$filter)
+      x$activefilter <- NULL
+      if(showAll) {
+        removeUI(selector = paste0("#",session$ns("filterselector")))
+        for(xf in x$filter){
+          insertUI(
+            selector = paste0("#",session$ns("filterend")),
+            where = "beforeBegin",
+            ui = selectUI(session,xf, x$data[[xf]], x$filterclass[xf], x$filtermultiple[xf])
+          )
+        }
+        x$activefilter <- x$filter
+      } else {
+        updateSelectInput(session, "filter", choices=x$filter)
+        if(input$filter==x$filter[1]) {
+          insertUI(
+            selector = paste0("#",session$ns("filterend")),
+            where = "beforeBegin",
+            ui = selectUI(session,input$filter, x$data[[input$filter]], x$filterclass[input$filter], x$filtermultiple[input$filter])
+          )
+          x$activefilter <- c(x$activefilter,input$filter)
+        }
       }
-    }
-    message("  ..finished modFilter initialization (",round(as.numeric(Sys.time()-start,units="secs"),4),"s)")
+      x$initialized <- TRUE
+      message("  ..finished modFilter initialization ",name,"(",round(as.numeric(Sys.time()-start,units="secs"),4),"s)")
+    }  
+  }
+  
+  
+  observeEvent(data(),{
+    initialize(input,session,data,x,exclude,order,multiple)
   })
   
   observe({
+    if(!x$initialized) initialize(input,session,data,x,exclude,order,multiple)
     x$out <- selectdata(data(),input,x$activefilter,xdata,xdataExclude)
   })
   
