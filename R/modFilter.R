@@ -182,7 +182,6 @@ modFilter <- function(input, output, session, data, exclude=NULL, showAll=FALSE,
   })
   
   observe({
-    if(!x$initialized) initialize(input,session,data,x,exclude,order,multiple)
     x$out <- selectdata(data(),input,x$activefilter,xdata,xdataExclude)
   })
   
