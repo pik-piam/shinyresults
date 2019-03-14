@@ -126,7 +126,7 @@ appMAgPIE <- function(file="https://rse.pik-potsdam.de/data/magpie/results/rev1/
       output[[paste0("lineplot",counter$Plot)]] <- callModule(modLinePlot,paste0("lineplot",counter$Plot),report=rep_full,validation=reactive(val_full))
     })
 
-    #output$areaplot <- callModule(modAreaPlot,"areaplot",report=rep_full)
+    output$areaplot <- callModule(modAreaPlot,"areaplot",report=rep_full)
     
     observeEvent(rep_full$variables(),{
       if(!setequal(val$variables,rep_full$variables())) {

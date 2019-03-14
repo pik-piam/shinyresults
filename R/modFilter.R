@@ -211,9 +211,6 @@ modFilter <- function(input, output, session, data, exclude=NULL, showAll=FALSE,
     }
   })
   
-
-  
-  #out <- reactive(selectdata(data(),input,x$activefilter,xdata,xdataExclude))
   output$observations <- renderText(paste0(dim(x$out$x)[1]," observations"))
   
   return(debounce(reactive(x$out),500))

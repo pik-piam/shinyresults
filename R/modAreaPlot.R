@@ -20,7 +20,7 @@ modAreaPlot <- function(input, output, session, report) {
   }
   
   selection <- callModule(modFilter, "runfilter",
-                          data         = reactive(addGroup(report()$report)), 
+                          data         = reactive(addGroup(report$report())), 
                           exclude      = c("variable","value","unit"), 
                           showAll      = TRUE, 
                           multiple     = c(group=FALSE),
@@ -30,7 +30,7 @@ modAreaPlot <- function(input, output, session, report) {
   areaplot <- reactive({
     start <- Sys.time()
     message("Create areaplot in modAreaPlot..")
-    if(report()$ready) {
+    if(report$ready()) {
       if(nrow(selection()$x)>5000) stop("Too many data points (>5000)! Please filter data!")
       p <- mipArea(x = selection()$x) + mip::theme_mip(size=10)
     } else p <- NULL
