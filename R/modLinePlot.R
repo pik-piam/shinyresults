@@ -37,12 +37,12 @@ modLinePlot <- function(input, output, session, report, validation) {
       } else {
         validation <- NULL
       }
-      p <- mipLineHistorical(x    = selection()$x,
+      p <- suppressMessages(mipLineHistorical(x    = selection()$x,
                            x_hist = validation,
                            size   = 10,
                            ylab   = selection()$x$unit,
                            title  = selection()$x$variable,
-                           scales = ifelse(input$free_y,"free_y","fixed"))
+                           scales = ifelse(input$free_y,"free_y","fixed")))
     } else p <- NULL
     message("  ..finished lineplot in modLinePlot (",round(as.numeric(Sys.time()-start,units="secs"),4),"s)")
     return(p)
