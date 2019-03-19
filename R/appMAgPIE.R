@@ -52,7 +52,7 @@ appMAgPIE <- function(file="https://rse.pik-potsdam.de/data/magpie/results/rev1/
                                                 choices = "runtime"),
                                     selectInput(inputId = "color",
                                                 label = "Choose Colorkey",
-                                                choices = "revision"),
+                                                choices = "user"),
                                     tags$p(),tags$hr(),tags$p(),
                                     modRunSelectUI("select"))),
               mainPanel(plotlyOutput("stats", height="600px", width="auto")))),

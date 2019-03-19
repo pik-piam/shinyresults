@@ -93,6 +93,7 @@ modRunSelect <- function(input, output, session, file, resultsfolder, username=N
   } else {
    data <- data[file.exists(paste0(resultsfolder,"/",data$.id,".rds")),]
   }
+  data <- as.data.table(data)
   
   selection <- callModule(modFilter,"runfilter",data=reactive(data),exclude=".id",name="RunSelect")
   

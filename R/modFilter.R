@@ -25,15 +25,17 @@ modFilter <- function(input, output, session, data, exclude=NULL, showAll=FALSE,
   
   if(!is.null(name)) name <- paste0(".:|",name,"|:. ")
   
+  for(i in names(xdata)) xdata[[i]] <- as.data.table(xdata[[i]])
+  
   x <- reactiveValues()
   x$initialized <- FALSE
+  x$activefilter <- NULL
   
   selectdata <- function(data,input,filter,xdata,xdataExclude){
     start <- Sys.time()
-    if(is.null(data)) return(data.frame())
+    if(is.null(data)) return(NULL)
     message("Run selectdata in modFilter ",name,"..")
-    data <- as.data.table(data)
-    for(i in names(xdata)) xdata[[i]] <- as.data.table(xdata[[i]])
+    if(!("data.table" %in% class(data))) data <- as.data.table(data)
     for(f in filter) {
       slf <- paste0("slider",f)
       if(!is.null(input[[slf]])) {
@@ -176,28 +178,18 @@ modFilter <- function(input, output, session, data, exclude=NULL, showAll=FALSE,
     }  
   }
   
-  
   observeEvent(data(),{
     initialize(input,session,data,x,exclude,order,multiple)
   })
   
-  # observeEvent(input$fixme,{
-  #   print("HUHU")
-  #   for(xf in x$filter){
-  #     print(xf)
-  #     removeUI(
-  #       selector = paste0("#",session$ns(paste0("div",escapeRegex(xf))))
-  #     )
-  #     insertUI(
-  #       selector = paste0("#",session$ns("filterend")),
-  #       where = "beforeBegin",
-  #       ui = selectUI(session,xf, x$data[[xf]], x$filterclass[xf], x$filtermultiple[xf])
-  #     )
-  #   }
-  # })
+  #dynamic_input_observe <- function(names) {
+  #  slider <- paste0("slider", names)
+  #  select <- paste0("select",names)
+  #  lapply(c(slider,select), function(x) input[[x]])
+  #}
   
   observe({
-    x$out <- selectdata(data(),input,x$activefilter,xdata,xdataExclude)
+      x$out <- selectdata(data(),input,x$activefilter,xdata,xdataExclude)
   })
   
   observeEvent(input$filter, {
