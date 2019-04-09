@@ -55,6 +55,13 @@ modLinePlot <- function(input, output, session, report, validation) {
     }
   )
   
+  output$downloadPlotObject <- downloadHandler(
+    filename = "ggplot.rds",
+    content = function(file) {
+      saveRDS(lineplot(),file=file)
+    }
+  )
+  
   return(renderPlot({
     lineplot()},res = 120))
   

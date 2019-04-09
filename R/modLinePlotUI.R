@@ -16,6 +16,7 @@ modLinePlotUI <- function(id) {
       column(6,checkboxInput(ns('show_val'), 'Validation Data', value = TRUE)),
       column(6,checkboxInput(ns('free_y'), 'Free Y', value = FALSE))
     ),
-    downloadButton(ns('downloadLinePlot'), 'Download Plot')
+    downloadButton(ns('downloadLinePlot'), 'Download Plot'),
+    downloadButton(ns('downloadPlotObject'), 'Download Plot Object')
   )
 }
