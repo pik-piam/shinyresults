@@ -4,7 +4,7 @@
 #'
 #' @param id id of the filter
 #' @author Florian Humpenoeder, Jan Philipp Dietrich
-#' @seealso \code{\link{modAreaPlot}}, \code{\link{appMAgPIE}}
+#' @seealso \code{\link{modAreaPlot}}, \code{\link{appResults}}
 #' @export
 
 modAreaPlotUI <- function(id) {

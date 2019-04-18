@@ -1,13 +1,15 @@
-#' @title appMAgPIE
-#' @description appMAgPIE allows to explore and visualize time series of modelling results.
+#' @title appResults
+#' @description appResults allows to explore and visualize time series of modelling results.
 #' 
-#' @param file Overview file in rds format containing an overview about all available runs.
-#' @param resultsfolder folder in which MAgPIE run results are stored. File must come with a overview list called "files" 
-#' @param valfile validation data. Can be a CSV/MIF file or rds file with a quitte object (saved with saveRDS). NULL by default; in this case the user can upload files directly in the tool
-#' @param username username to be used to access file and resultsfolder
-#' @param password password to access file and resultsfolder
+#' @param cfg config-file containing informations for one or more models on: 
+#'            file - Overview file in rds format containing an overview about all available runs; 
+#'            resultsfolder - folder in which MAgPIE run results are stored. File must come with a overview list called "files"; 
+#'            valfile - validation data. Can be a CSV/MIF file or rds file with a quitte object (saved with saveRDS). NULL by default; in this case the user can upload files directly in the tool;
+#'            username - username to be used to access file and resultsfolder; 
+#'            password - password to access file and resultsfolder.
 #' @param readFilePar read report data files in parallel (faster) (TRUE) or in sequence (FALSE). Current default is FALSE.
-#' @author Florian Humpenoeder, Jan Philipp Dietrich
+#' @param ... additional information to adjust one of the settings from the cfg directly: file, resultsfolder, valfile, username or password  
+#' @author Florian Humpenoeder, Jan Philipp Dietrich, Lavinia Baumstark
 #' @importFrom shiny appendTab tagList isolate div insertTab reactiveValues observeEvent updateTextInput observe updateSelectInput reactive hoverOpts uiOutput sliderInput
 #' renderPrint renderDataTable downloadHandler fluidPage navbarPage tabPanel sidebarLayout sidebarPanel
 #' fileInput tags selectInput mainPanel tabsetPanel wellPanel fluidRow column radioButtons conditionalPanel
@@ -23,12 +25,39 @@
 #' @importFrom plotly renderPlotly ggplotly plotlyOutput
 #' @export
 #'
-appMAgPIE <- function(file="https://rse.pik-potsdam.de/data/magpie/results/rev1/overview.rds", 
-                      resultsfolder="https://rse.pik-potsdam.de/data/magpie/results/rev1/", 
-                      valfile="https://rse.pik-potsdam.de/data/magpie/results/rev1/validation.rds", 
-                      username=getOption("appMAgPIE_username"), 
-                      password=getOption("appMAgPIE_password"),
-                      readFilePar=FALSE) {
+appResults <- function(cfg=getOption("appResults"),readFilePar=FALSE,...) {
+  
+  # If config for only one model is provided by getOption("appResults") use this one. 
+  # If information for more models exists the user can choose the model.
+  if(length(cfg)==1) {
+    cfgModel <- cfg[[1]]
+  } else{
+    cat("Please choose a model:\n\n")
+    models <- names(cfg)
+    cat(paste(1:length(models), models, sep=": " ),sep="\n")
+    cat("\nNumber: ")
+    number   <- readline()
+    cfgModel <- cfg[[as.numeric(number)]]   
+  } 
+  # check if user provides some information on settings that should be used directly, 
+  # if not use information from cfg
+  addInfo <- list(...)   # store additional information if provided
+  if (!is.null(addInfo$file))      {
+          file          <- addInfo$file 
+  } else {file          <- cfgModel$file }
+  if (!is.null(addInfo$resultsfolder)) {
+          resultsfolder <- addInfo$resultsfolder 
+  } else {resultsfolder <- cfgModel$resultsfolder  }
+  if (!is.null(addInfo$valfile))       {
+          valfile       <- addInfo$valfile 
+  } else {valfile       <- cfgModel$valfile  }
+  if (!is.null(addInfo$username))      {
+          username      <- addInfo$username 
+  } else {username      <- cfgModel$username  }
+  if (!is.null(addInfo$password))      {
+          password      <- addInfo$password 
+  } else {password      <- cfgModel$password  }
+
   
   if(grepl("https://",file)) {
     tmp <- try(curl(file,"r",new_handle(username=username,password=password)))
@@ -139,7 +168,7 @@ appMAgPIE <- function(file="https://rse.pik-potsdam.de/data/magpie/results/rev1/
     
     output$stats <- renderPlotly({
       start <- Sys.time()
-      message("Create OverviewPlot in appMAgPIE..")
+      message("Create OverviewPlot in appResults..")
       cset <- function(i,check) {
         if(i %in% check) return(i)
         return(check[1])
@@ -150,7 +179,7 @@ appMAgPIE <- function(file="https://rse.pik-potsdam.de/data/magpie/results/rev1/
                                                 x=cset(input$xaxis,rep_full$variables()),
                                                 color=cset(input$color,rep_full$variables())), na.rm=TRUE) +
         theme
-      message("  ..finished preparing OverviewPlot in appMAgPIE (",round(as.numeric(Sys.time()-start,units="secs"),4),"s)")
+      message("  ..finished preparing OverviewPlot in appResults (",round(as.numeric(Sys.time()-start,units="secs"),4),"s)")
       ggplotly(p)
     })
     

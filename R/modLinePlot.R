@@ -6,7 +6,7 @@
 #' @param report A reactive containing the report to be visualized
 #' @param validation A reactive containing validation data to be shown
 #' @author Florian Humpenoeder, Jan Philipp Dietrich
-#' @seealso \code{\link{modLinePlotUI}}, \code{\link{appMAgPIE}}
+#' @seealso \code{\link{modLinePlotUI}}, \code{\link{appResults}}
 #' @export
 
 modLinePlot <- function(input, output, session, report, validation) {

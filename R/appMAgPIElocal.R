@@ -1,6 +1,6 @@
 #' appMAgPIElocal
 #'
-#' version of appMAgPIE which is optimized to run on a local model folder. In contrast to appMAgPIE, 
+#' version of appResults which is optimized to run on a local model folder. In contrast to appResults, 
 #' appMAgPIElocal only requires the path to an output folder (with subfolders for each run).
 #'
 #' @param folder output folder containing the runs to be analyzed as subfolders (e.g. folder "output" in a
@@ -9,7 +9,7 @@
 #' latter case it will be converted to rds first). If not path is given the function will look automatically for 
 #' an validation file in the output folder
 #' @author Jan Philipp Dietrich
-#' @seealso \code{\link{appMAgPIE}}
+#' @seealso \code{\link{appResults}}
 #' @export
 
 appMAgPIElocal <- function(folder="output/", valfile=NULL) {
@@ -53,5 +53,5 @@ appMAgPIElocal <- function(folder="output/", valfile=NULL) {
     }
   }
   
-  appMAgPIE(file=file, resultsfolder = folder, valfile=valfile)
+  appResults(file=file, resultsfolder = folder, valfile=valfile)
 }

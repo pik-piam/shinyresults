@@ -4,7 +4,7 @@
 #'
 #' @param id id of the filter
 #' @author Florian Humpenoeder, Jan Philipp Dietrich
-#' @seealso \code{\link{modLinePlot}}, \code{\link{appMAgPIE}}
+#' @seealso \code{\link{modLinePlot}}, \code{\link{appResults}}
 #' @export
 
 modLinePlotUI <- function(id) {

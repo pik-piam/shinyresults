@@ -5,7 +5,7 @@
 #' @param input,output,session Default input, output and session objects coming from shiny
 #' @param report A reactive containing the report to be visualized
 #' @author Jan Philipp Dietrich, Florian Humpenoeder
-#' @seealso \code{\link{modAreaPlotUI}}, \code{\link{appMAgPIE}}
+#' @seealso \code{\link{modAreaPlotUI}}, \code{\link{appResults}}
 #' @export
 
 modAreaPlot <- function(input, output, session, report) {
