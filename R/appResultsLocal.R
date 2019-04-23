@@ -1,18 +1,18 @@
-#' appMAgPIElocal
+#' appResultsLocal
 #'
 #' version of appResults which is optimized to run on a local model folder. In contrast to appResults, 
-#' appMAgPIElocal only requires the path to an output folder (with subfolders for each run).
+#' appResultsLocal only requires the path to an output folder (with subfolders for each run).
 #'
 #' @param folder output folder containing the runs to be analyzed as subfolders (e.g. folder "output" in a
 #' MAgPIE model folder)
 #' @param valfile Path to a validation file, preferably in rds format, but can also be provided as mif (in the 
 #' latter case it will be converted to rds first). If not path is given the function will look automatically for 
 #' an validation file in the output folder
-#' @author Jan Philipp Dietrich
+#' @author Jan Philipp Dietrich, Lavinia Baumstark
 #' @seealso \code{\link{appResults}}
 #' @export
 
-appMAgPIElocal <- function(folder="output/", valfile=NULL) {
+appResultsLocal <- function(folder="output/", valfile=NULL) {
   
   if (!requireNamespace("lucode", quietly = TRUE)) {
     stop("Package \"lucode\" needed for this function to work. Please install it.",
@@ -34,7 +34,7 @@ appMAgPIElocal <- function(folder="output/", valfile=NULL) {
       if(any(file.exists(valfile))) {
         valfile <- valfile[file.exists(valfile)][1]
       } else {
-        valfile <- NULL
+        valfile <- sub("validation.mif","historical.mif",valfile)  # maybe the model is using historical.mif instead of validation.mif
       }
     }
   }
@@ -53,5 +53,12 @@ appMAgPIElocal <- function(folder="output/", valfile=NULL) {
     }
   }
   
-  appResults(file=file, resultsfolder = folder, valfile=valfile)
+  # collect information on local settings
+  cfg_local <- list("localModel"= list(file=file, 
+                                       resultsfolder=folder, 
+                                       valfile=valfile, 
+                                       username="mine", 
+                                       password="localModel"))
+  
+  appResults(cfg=cfg_local)
 }
