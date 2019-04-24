@@ -1,14 +1,21 @@
 #' @title appResults
 #' @description appResults allows to explore and visualize time series of modelling results.
 #' 
-#' @param cfg config-file containing informations for one or more models on: 
-#'            file - Overview file in rds format containing an overview about all available runs; 
-#'            resultsfolder - folder in which MAgPIE run results are stored. File must come with a overview list called "files"; 
-#'            valfile - validation data. Can be a CSV/MIF file or rds file with a quitte object (saved with saveRDS). NULL by default; in this case the user can upload files directly in the tool;
-#'            username - username to be used to access file and resultsfolder; 
-#'            password - password to access file and resultsfolder.
+#' @param cfg config-file containing information about one or more models on the items listed below. Usually you provide these settings 
+#'            in your .Rprofile as a list constructed as follows (to explore REMIND results please replace all occurrences of magpie with remind): 
+#'            options(appResults=list("MAgPIE"= list(file="https://rse.pik-potsdam.de/data/magpie/results/rev1/overview.rds",
+#'            resultsfolder="https://rse.pik-potsdam.de/data/magpie/results/rev1/",
+#'            valfile="https://rse.pik-potsdam.de/data/magpie/results/rev1/validation.rds",
+#'            username="xxx",
+#'            password="yyy")))
+#'                        
+#'            file - Overview file in rds format containing a list of all runs available.
+#'            resultsfolder - folder in which model results are stored in rds format.
+#'            valfile - validation data. Can be a CSV/MIF file or rds file with a quitte object (saved with saveRDS). NULL by default; in this case the user can upload files directly in the tool.
+#'            username - username to access "file" and "resultsfolder". 
+#'            password - password to access "file" and "resultsfolder".
 #' @param readFilePar read report data files in parallel (faster) (TRUE) or in sequence (FALSE). Current default is FALSE.
-#' @param ... additional information to adjust one of the settings from the cfg directly: file, resultsfolder, valfile, username or password  
+#' @param ... additional information to overwrite one of the settings from the cfg directly: file, resultsfolder, valfile, username or password.
 #' @author Florian Humpenoeder, Jan Philipp Dietrich, Lavinia Baumstark
 #' @importFrom shiny appendTab tagList isolate div insertTab reactiveValues observeEvent updateTextInput observe updateSelectInput reactive hoverOpts uiOutput sliderInput
 #' renderPrint renderDataTable downloadHandler fluidPage navbarPage tabPanel sidebarLayout sidebarPanel
