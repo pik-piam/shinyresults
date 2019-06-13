@@ -22,6 +22,7 @@ modLinePlot <- function(input, output, session, report, validation) {
                           exclude      = c("value","unit"), 
                           showAll      = TRUE, 
                           multiple     = c(variable=FALSE),
+                          #xdata        = list(validation=reduceVariables(validation())),
                           xdata        = list(validation=validation()),
                           xdataExclude = c("scenario","period"),
                           order        = c("variable"),
@@ -38,8 +39,6 @@ modLinePlot <- function(input, output, session, report, validation) {
       } else {
         validation <- NULL
       }
-      saveRDS(validation,file = "meins.rds")
-      saveRDS(selection()$x,file = "x.rds")
       p <- suppressMessages(mipLineHistorical(x    = selection()$x,
                            x_hist = validation,
                            size   = 10,
