@@ -33,12 +33,21 @@ modLinePlot <- function(input, output, session, report, validation) {
     start <- Sys.time()
     message("Create lineplot in modLinePlot..")
     if(report$ready()) {
-      if(input$show_val) {
-        validation <- selection()$xdata$validation
+      history     <- NULL
+      projections <- NULL
+      
+      if(input$show_hist) {
+        bla <- selection()$xdata$validation
+        history <- bla[bla$scenario == "historical",]
         
-      } else {
-        validation <- NULL
+      } 
+      if (input$show_proj) {
+        blub <- selection()$xdata$validation
+        projections <- blub[blub$scenario != "historical",]
       }
+      
+      validation <- rbind(history,projections)
+      
       p <- suppressMessages(mipLineHistorical(x    = selection()$x,
                            x_hist = validation,
                            size   = 10,
