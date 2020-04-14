@@ -1,8 +1,8 @@
 Package: shinyresults
 Type: Package
 Title: A collection of shiny apps and modules to visualize/handle model results
-Version: 0.23.0
-Date: 2019-11-19
+Version: 0.23.1
+Date: 2020-04-14
 Authors@R: c(person("Jan Philipp", "Dietrich", email = "dietrich@pik-potsdam.de", role = c("aut","cre")),
              person("Florian", "Humpenoeder", email = "humpenoeder@pik-potsdam.de", role = "aut"))
 Description: A collection of tools which allow to manipulate and analyze code.
@@ -20,7 +20,10 @@ Imports:
   doSNOW,
   foreach,
   snow,
-  parallel
+  parallel,
+  DBI,
+  RSQLite,
+  tibble
 Suggests:
   lucode,
   quitte(>= 0.3072)
@@ -29,5 +32,5 @@ BugReports: https://github.com/pik-piam/shinyresults/issues
 Encoding: UTF-8
 License: BSD_2_clause + file LICENSE
 LazyData: no
-RoxygenNote: 6.1.1
-ValidationKey: 4190370
+RoxygenNote: 7.1.0
+ValidationKey: 4242546
