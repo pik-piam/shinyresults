@@ -15,8 +15,9 @@ modAreaPlot <- function(input, output, session, report) {
     if(is.null(report)) return(NULL)
     message("AddGroup in modAreaPlot..")
     tmp <- extractVariableGroups(levels(report$variable))
+    out <- merge(report,tmp)
     message("  ..finished AddGroup in modAreaPlot (",round(as.numeric(Sys.time()-start,units="secs"),4),"s)")
-    return(merge(report,tmp))
+    return(out)
   }
   
   selection <- callModule(modFilter, "runfilter",

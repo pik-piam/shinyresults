@@ -140,8 +140,13 @@ modFilter <- function(input, output, session, data, exclude=NULL, showAll=FALSE,
       start <- Sys.time()
       message("Initialize modFilter ",name,"..")
       x$data <- data()
-      nelem <- apply(x$data,2,uniqueN)
-      x$filter <- names(x$data)[!(names(x$data)%in%exclude) & nelem>=1]
+      multiple_choices <- function(x) {
+        x <- x[!is.na(x)]
+        if(length(x)<2) return(FALSE)
+        return(any(x != x[1],na.rm = TRUE))
+      }
+      multiple_choices <- as.vector(sapply(x$data,multiple_choices))
+      x$filter <- names(x$data)[!(names(x$data)%in%exclude) & multiple_choices]
       if(!is.null(order)) x$filter <- c(intersect(order,x$filter),setdiff(x$filter,order))
       x$filterclass <- sapply(x$data,function(x)return(class(x)[1]))
       x$filtermultiple <- multiple

@@ -13,7 +13,7 @@
 #' @seealso \code{\link{modFilterUI}}, \code{\link{appModelstats}}
 #' @importFrom shiny updateSliderInput withProgress incProgress
 #' @importFrom tools file_path_sans_ext
-#' @importFrom data.table uniqueN
+#' @importFrom data.table is.data.table
 #' @importFrom curl curl new_handle
 #' @importFrom parallel detectCores
 #' @importFrom snow makeCluster stopCluster
@@ -93,7 +93,7 @@ modRunSelect <- function(input, output, session, file, resultsfolder, username=N
   } else {
    data <- data[file.exists(paste0(resultsfolder,"/",data$.id,".rds")),]
   }
-  data <- as.data.table(data)
+  if(!is.data.table(data)) data <- as.data.table(data)
   
   selection <- callModule(modFilter,"runfilter",data=reactive(data),exclude=".id",name="RunSelect")
   
