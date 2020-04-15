@@ -6,6 +6,7 @@
 #' @param report A reactive containing the report to be visualized
 #' @author Jan Philipp Dietrich, Florian Humpenoeder
 #' @seealso \code{\link{modAreaPlotUI}}, \code{\link{appResults}}
+#' @importFrom data.table as.data.table merge.data.table
 #' @export
 
 modAreaPlot <- function(input, output, session, report) {
@@ -15,7 +16,7 @@ modAreaPlot <- function(input, output, session, report) {
     if(is.null(report)) return(NULL)
     message("AddGroup in modAreaPlot..")
     tmp <- extractVariableGroups(levels(report$variable))
-    out <- merge(report,tmp)
+    out <- merge(as.data.table(report),as.data.table(tmp))
     message("  ..finished AddGroup in modAreaPlot (",round(as.numeric(Sys.time()-start,units="secs"),4),"s)")
     return(out)
   }
