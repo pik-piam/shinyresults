@@ -34,7 +34,7 @@ modFilter <- function(input, output, session, data, exclude=NULL, showAll=FALSE,
   selectdata <- function(data,input,filter,xdata,xdataExclude){
     start <- Sys.time()
     if(is.null(data)) return(NULL)
-    message("Run selectdata in modFilter ",name,"..")
+    message(name," Run selectdata in modFilter..", appendLF = FALSE)
     if(!("data.table" %in% class(data))) data <- as.data.table(data)
     for(f in filter) {
       slf <- paste0("slider",f)
@@ -67,7 +67,8 @@ modFilter <- function(input, output, session, data, exclude=NULL, showAll=FALSE,
       } else {
         sf <- paste0("select",f)
         if(!is.null(input[[sf]])) {
-          slchoices <- sort(data[[f]])
+          #slchoices <- sort(data[[f]])
+          slchoices <- data[[f]]
           if(!setequal(slchoices,x[[sf]])) {
             updateSelectInput(session, sf,  choices=slchoices, selected=input[[sf]])
             x[[sf]] <- slchoices
@@ -89,7 +90,7 @@ modFilter <- function(input, output, session, data, exclude=NULL, showAll=FALSE,
     out <- list(x=data)
     if(!is.null(xdata)) out$xdata <- xdata
   
-    message("  ..finished selectdata in modFilter ",name," (",round(as.numeric(Sys.time()-start,units="secs"),4),"s)")
+    message("done! (",round(as.numeric(Sys.time()-start,units="secs"),2),"s)")
     return(out)
   }
   
@@ -138,7 +139,7 @@ modFilter <- function(input, output, session, data, exclude=NULL, showAll=FALSE,
   initialize <- function(input,session,data,x,exclude,order,multiple) {
     if(!is.null(data())) {
       start <- Sys.time()
-      message("Initialize modFilter ",name,"..")
+      message(name," Initialize modFilter..", appendLF=FALSE)
       x$data <- data()
       multiple_choices <- function(x) {
         x <- x[!is.na(x)]
@@ -179,19 +180,13 @@ modFilter <- function(input, output, session, data, exclude=NULL, showAll=FALSE,
         }
       }
       x$initialized <- TRUE
-      message("  ..finished modFilter initialization ",name,"(",round(as.numeric(Sys.time()-start,units="secs"),4),"s)")
+      message("  done! (",round(as.numeric(Sys.time()-start,units="secs"),2),"s)")
     }  
   }
   
   observeEvent(data(),{
     initialize(input,session,data,x,exclude,order,multiple)
   })
-  
-  #dynamic_input_observe <- function(names) {
-  #  slider <- paste0("slider", names)
-  #  select <- paste0("select",names)
-  #  lapply(c(slider,select), function(x) input[[x]])
-  #}
   
   observe({
       x$out <- selectdata(data(),input,x$activefilter,xdata,xdataExclude)

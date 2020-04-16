@@ -14,10 +14,10 @@ modAreaPlot <- function(input, output, session, report) {
   addGroup <- function(report) {
     start <- Sys.time()
     if(is.null(report)) return(NULL)
-    message("AddGroup in modAreaPlot..")
+    message(".:|modAreaPlot|:. add groups..", appendLF = FALSE)
     tmp <- extractVariableGroups(levels(report$variable))
     out <- merge(as.data.table(report),as.data.table(tmp))
-    message("  ..finished AddGroup in modAreaPlot (",round(as.numeric(Sys.time()-start,units="secs"),4),"s)")
+    message("done! (",round(as.numeric(Sys.time()-start,units="secs"),2),"s)")
     return(out)
   }
   
@@ -31,12 +31,17 @@ modAreaPlot <- function(input, output, session, report) {
 
   areaplot <- reactive({
     start <- Sys.time()
-    message("Create areaplot in modAreaPlot..")
+    message(".:|modAreaPlot|:. Create area plot..", appendLF = FALSE)
     if(report$ready()) {
-      if(nrow(selection()$x)>5000) stop("Too many data points (>5000)! Please filter data!")
-      p <- mipArea(x = selection()$x) + mip::theme_mip(size=10)
+      if(nrow(selection()$x)>5000) {
+        p <- ggplot() +  
+          annotate("text", x=1, y=1, label= "Too many data points (>5000)! Please filter data!") + 
+          theme_void()  
+      } else {
+        p <- mipArea(x = selection()$x) + mip::theme_mip(size=10)
+      }
     } else p <- NULL
-    message("  ..finished areaplot in modAreaPlot (",round(as.numeric(Sys.time()-start,units="secs"),4),"s)")
+    message("done! (",round(as.numeric(Sys.time()-start,units="secs"),2),"s)")
     return(ggplotly(p))
   })
   

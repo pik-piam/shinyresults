@@ -13,7 +13,7 @@
 #' @seealso \code{\link{modFilterUI}}, \code{\link{appModelstats}}
 #' @importFrom shiny updateSliderInput withProgress incProgress
 #' @importFrom tools file_path_sans_ext
-#' @importFrom data.table is.data.table
+#' @importFrom data.table is.data.table rbindlist
 #' @importFrom curl curl new_handle
 #' @importFrom parallel detectCores
 #' @importFrom snow makeCluster stopCluster
@@ -40,6 +40,7 @@ modRunSelect <- function(input, output, session, file, resultsfolder, username=N
     
     if("date" %in% names(out)) out$date <- conv_date(out$date)
     if("revision_date" %in% names(out)) out$revision_date <- conv_date(out$revision_date)
+    if(!is.data.table(out)) out <- as.data.table(out)
     return(out)
   }
   
@@ -54,11 +55,14 @@ modRunSelect <- function(input, output, session, file, resultsfolder, username=N
           readdata(file, username=username, password=password, addfilename = TRUE)
         }
       } else {
-        fout <- NULL  
+        fout <- list() 
         for(file in files) {
-          fout <- rbind(fout,readdata(file, username=username, password=password, addfilename = TRUE))
-          incProgress(1/length(files), detail = basename(file))
+          incProgress(1/(length(files)+1), detail = basename(file))
+          fout[[file]] <- readdata(file, username=username, password=password, addfilename = TRUE)
         }
+        incProgress(1, detail = "merge data")
+        fout <- rbindlist(fout)
+        
       }
     })
     if (nlevels(fout$scenario) != nlevels(fout$filename)) {
@@ -103,10 +107,10 @@ modRunSelect <- function(input, output, session, file, resultsfolder, username=N
   
   observeEvent(input$load, {
     start <- Sys.time()
-    message("Read data in modRunSelect..")
+    message(".:|modRunSelect|:. Read data..", appendLF = FALSE)
     x$out <- fullReport()
     x$ready <- TRUE
-    message("  ..finished reading data in modRunSelect (",round(as.numeric(Sys.time()-start,units="secs"),4),"s)")
+    message("done! (",round(as.numeric(Sys.time()-start,units="secs"),2),"s)")
   })
   out <- reactiveValues()
   out$report <- reactive(x$out)

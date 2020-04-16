@@ -175,7 +175,7 @@ appResults <- function(cfg=getOption("appResults"),readFilePar=FALSE,...) {
     
     output$stats <- renderPlotly({
       start <- Sys.time()
-      message("Create OverviewPlot in appResults..")
+      message(".:|appResults|:. Create OverviewPlot..", appendLF = FALSE)
       cset <- function(i,check) {
         if(i %in% check) return(i)
         return(check[1])
@@ -186,7 +186,7 @@ appResults <- function(cfg=getOption("appResults"),readFilePar=FALSE,...) {
                                                 x=cset(input$xaxis,rep_full$variables()),
                                                 color=cset(input$color,rep_full$variables())), na.rm=TRUE) +
         theme
-      message("  ..finished preparing OverviewPlot in appResults (",round(as.numeric(Sys.time()-start,units="secs"),4),"s)")
+      message("done! (",round(as.numeric(Sys.time()-start,units="secs"),2),"s)")
       ggplotly(p)
     })
     

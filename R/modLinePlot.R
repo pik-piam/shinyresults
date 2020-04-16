@@ -7,6 +7,7 @@
 #' @param validation A reactive containing validation data to be shown
 #' @author Florian Humpenoeder, Jan Philipp Dietrich
 #' @seealso \code{\link{modLinePlotUI}}, \code{\link{appResults}}
+#' @importFrom ggplot2 ggplot theme_void annotate
 #' @export
 
 modLinePlot <- function(input, output, session, report, validation) {
@@ -17,12 +18,10 @@ modLinePlot <- function(input, output, session, report, validation) {
   }
   
   selection <- callModule(modFilter, "runfilter",
-                          #data         = reactive(reduceVariables(report$report())), 
                           data         = report$report,
                           exclude      = c("value","unit"), 
                           showAll      = TRUE, 
                           multiple     = c(variable=FALSE),
-                          #xdata        = list(validation=reduceVariables(validation())),
                           xdata        = list(validation=validation()),
                           xdataExclude = c("scenario","period"),
                           order        = c("variable"),
@@ -31,31 +30,37 @@ modLinePlot <- function(input, output, session, report, validation) {
 
   lineplot <- reactive({
     start <- Sys.time()
-    message("Create lineplot in modLinePlot..")
+    message(".:|modAreaPlot|:. Create line plot..", appendLF = FALSE)
     if(report$ready()) {
-      history     <- NULL
-      projections <- NULL
-      
-      if(input$show_hist) {
-        bla <- selection()$xdata$validation
-        history <- bla[bla$scenario == "historical",]
+      if(nrow(selection()$x)>20000) {
+        p <- ggplot() +  
+          annotate("text", x=1, y=1, label= "Too many data points (>20000)! Please filter data!") + 
+          theme_void()  
+      } else {
+        history     <- NULL
+        projections <- NULL
         
-      } 
-      if (input$show_proj) {
-        blub <- selection()$xdata$validation
-        projections <- blub[blub$scenario != "historical",]
+        if(input$show_hist) {
+          bla <- selection()$xdata$validation
+          history <- bla[bla$scenario == "historical",]
+          
+        } 
+        if (input$show_proj) {
+          blub <- selection()$xdata$validation
+          projections <- blub[blub$scenario != "historical",]
+        }
+        
+        validation <- rbind(history,projections)
+        
+        p <- suppressMessages(mipLineHistorical(x    = selection()$x,
+                             x_hist = validation,
+                             size   = 10,
+                             ylab   = selection()$x$unit,
+                             title  = selection()$x$variable,
+                             scales = ifelse(input$free_y,"free_y","fixed")))
       }
-      
-      validation <- rbind(history,projections)
-      
-      p <- suppressMessages(mipLineHistorical(x    = selection()$x,
-                           x_hist = validation,
-                           size   = 10,
-                           ylab   = selection()$x$unit,
-                           title  = selection()$x$variable,
-                           scales = ifelse(input$free_y,"free_y","fixed")))
     } else p <- NULL
-    message("  ..finished lineplot in modLinePlot (",round(as.numeric(Sys.time()-start,units="secs"),4),"s)")
+    message("done! (",round(as.numeric(Sys.time()-start,units="secs"),2),"s)")
     return(p)
   })
   
