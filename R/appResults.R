@@ -74,7 +74,6 @@ appResults <- function(cfg=getOption("appResults"),readFilePar=FALSE,...) {
   #client-sided function
   ui <- fluidPage(
     div(style = "position:absolute;right:1em;", 
-        #actionButUI("append_tab", "Add LinePlot")
         actionButton("button", label = "Add LinePlot")
     ),
     tabsetPanel(id="append_tab", type="tabs",
@@ -94,8 +93,8 @@ appResults <- function(cfg=getOption("appResults"),readFilePar=FALSE,...) {
               mainPanel(plotlyOutput("stats", height="600px", width="auto")))),
             tabPanel("LinePlot1",
               sidebarLayout(
-                sidebarPanel(modLinePlotUI("lineplot1")),
-                mainPanel(plotOutput("lineplot1",height = "800px",width = "auto"))
+                sidebarPanel(modLinePlotUI("LinePlot1")),
+                mainPanel(plotOutput("LinePlot1",height = "800px",width = "auto"))
               )
             ),
             tabPanel("AreaPlot",
@@ -155,13 +154,12 @@ appResults <- function(cfg=getOption("appResults"),readFilePar=FALSE,...) {
       appendTab(inputId = "append_tab", 
                 tabPanel(paste0("LinePlot",counter$Plot),
                          sidebarLayout(
-                           sidebarPanel(modLinePlotUI(paste0("lineplot",counter$Plot))),
-                           mainPanel(plotOutput(paste0("lineplot",counter$Plot),height = "800px",width = "auto")))))
-                #target = paste0("LinePlot",counter$Plot-1), position = "after")
+                           sidebarPanel(modLinePlotUI(paste0("LinePlot",counter$Plot))),
+                           mainPanel(plotOutput(paste0("LinePlot",counter$Plot),height = "800px",width = "auto")))))
     })
     
     observeEvent(counter$Plot,{
-      output[[paste0("lineplot",counter$Plot)]] <- callModule(modLinePlot,paste0("lineplot",counter$Plot),report=rep_full,validation=reactive(val_full))
+      output[[paste0("LinePlot",counter$Plot)]] <- callModule(modLinePlot,paste0("LinePlot",counter$Plot),report=rep_full,validation=reactive(val_full))
     })
 
     output$areaplot <- callModule(modAreaPlot,"areaplot",report=rep_full)
