@@ -26,7 +26,9 @@ modRunSelect <- function(input, output, session, file, resultsfolder, username=N
   
   readdata <- function(file,username=NULL, password=NULL,addfilename=FALSE) {
     if(grepl("https://",file)) {
-      out <- readRDS(gzcon(curl(file, handle=new_handle(username=username, password=password))))
+      con <- gzcon(curl(file, handle=new_handle(username=username, password=password)))
+      out <- readRDS(con)
+      close(con)
     } else {
       out <- readRDS(file)
     }
@@ -84,13 +86,21 @@ modRunSelect <- function(input, output, session, file, resultsfolder, username=N
   
   readtextfile <- function(file, username=NULL, password=NULL) {
     if(grepl("https://",file)) {
-      out <- readLines(gzcon(curl(file, handle=new_handle(username=username, password=password))))
+      out <- readLines(curl(file, handle=new_handle(username=username, password=password)))
     } else {
       out <- readLines(file)
     }
   }
   
+  progress <- Progress$new(session, min=1, max=10)
+  on.exit(progress$close())
+  progress$set(message = 'Read in run overview',
+               detail = 'This may take a while...',
+               value = 2)
   data <- readdata(file, username=username, password=password)
+  progress$set(message = 'Check for corresponding model run outputs',
+               detail = 'That should be quick...',
+               value = 7)
   if(grepl("https://",file)) {
     ids <- as.numeric(sub("\\.rds$","",readtextfile(paste0(resultsfolder,"/files"), username=username, password=password)))
     data <- data[(data$.id %in% ids),]
@@ -98,6 +108,10 @@ modRunSelect <- function(input, output, session, file, resultsfolder, username=N
    data <- data[file.exists(paste0(resultsfolder,"/",data$.id,".rds")),]
   }
   if(!is.data.table(data)) data <- as.data.table(data)
+  
+  progress$set(message = 'Load filter module',
+               detail = 'That should be quick...',
+               value = 9)
   
   selection <- callModule(modFilter,"runfilter",data=reactive(data),exclude=".id",name="RunSelect")
   
@@ -117,6 +131,8 @@ modRunSelect <- function(input, output, session, file, resultsfolder, username=N
   out$ready <- reactive(x$ready)
   out$variables <- reactive(names(selection()$x)[-1])
   out$selection <- selection
+  progress$set(message = 'Run selection ready',
+               detail = 'Move on to the next step...',
+               value = 10)
   return(out)
-  #return(reactiveValues(report=x$out,ready=x$ready,variables=names(selection()$x)[-1],selection=selection)))
 }

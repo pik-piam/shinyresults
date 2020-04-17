@@ -42,7 +42,9 @@ appModelstats <- function(files=c("https://www.pik-potsdam.de/rd3mod/magpie.rds"
   server <- function(input, output, session) {
     readdata <- function(file) {
       if(grepl("https://",file)) {
-        out <- readRDS(gzcon(url(file)))
+        con <- gzcon(url(file))
+        out <- readRDS(con)
+        close(con)
       } else {
         out <- readRDS(file)
       }

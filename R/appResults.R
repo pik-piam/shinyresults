@@ -138,6 +138,8 @@ appResults <- function(cfg=getOption("appResults"),readFilePar=FALSE,...) {
         val_full <- readRDS(valfile) 
       }
       
+      if("connection" %in% class(valfile)) close(valfile)
+      
       val_full <- val_full[!is.na(val_full$value),]
       levels(val_full$region) <- sub("World","GLO",levels(val_full$region))
       val_full <- val_full[val_full$period > 1950,] #show validation data only for years > 1950
@@ -174,6 +176,11 @@ appResults <- function(cfg=getOption("appResults"),readFilePar=FALSE,...) {
     })
     
     output$stats <- renderPlotly({
+      progress <- Progress$new(session, min=1, max=10)
+      on.exit(progress$close())
+      progress$set(message = 'Prepare overview plot',
+                   detail = 'This may take a while...',
+                   value = 2)
       start <- Sys.time()
       message(".:|appResults|:. Create OverviewPlot..", appendLF = FALSE)
       cset <- function(i,check) {
@@ -186,8 +193,15 @@ appResults <- function(cfg=getOption("appResults"),readFilePar=FALSE,...) {
                                                 x=cset(input$xaxis,rep_full$variables()),
                                                 color=cset(input$color,rep_full$variables())), na.rm=TRUE) +
         theme
+      progress$set(message = 'Make it interactive',
+                   detail = 'This should be quick...',
+                   value = 6)
+      p <- ggplotly(p)
       message("done! (",round(as.numeric(Sys.time()-start,units="secs"),2),"s)")
-      ggplotly(p)
+      progress$set(message = 'Send to plotter',
+                   detail = 'This should be quick...',
+                   value = 10)
+      p
     })
     
   }
