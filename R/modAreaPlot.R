@@ -42,17 +42,31 @@ modAreaPlot <- function(input, output, session, report) {
       }
     } else p <- NULL
     message("done! (",round(as.numeric(Sys.time()-start,units="secs"),2),"s)")
-    return(ggplotly(p))
+    return(p)
   })
   
-  output$downloadLinePlot <- downloadHandler(
-    filename = "export.pdf",
+  createFilename <- function(variable,ending) {
+    tmp <- shorten_legend(variable, identical_only = TRUE)
+    out <- sub("_+$","",gsub("\\.+","_",make.names(attr(tmp, "front"))))
+    out <- paste0(out,".",ending)
+    return(out)
+  }
+  
+  output$downloadPlot <- downloadHandler(
+    filename = reactive(createFilename(selection()$x$variable,"pdf")),
     content = function(file) {
       ggsave(file, plot = areaplot(), device = "pdf",scale=1,width=20,height=18,units="cm",dpi=150)
     }
   )
   
+  output$downloadPlotObject <- downloadHandler(
+    filename = reactive(createFilename(selection()$x$variable,"rds")),
+    content = function(file) {
+      saveRDS(areaplot(),file=file)
+    }
+  )
+  
   return(renderPlotly({
-    areaplot()}))
+    ggplotly(areaplot())}))
   
 }

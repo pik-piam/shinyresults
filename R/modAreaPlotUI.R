@@ -12,6 +12,7 @@ modAreaPlotUI <- function(id) {
   tags$div(id=ns("filterbox"),
     modFilterUI(ns("runfilter")),
     tags$hr(),
-    downloadButton(ns('downloadLinePlot'), 'Download Plot')
+    downloadButton(ns('downloadPlot'), 'Download Plot'),
+    downloadButton(ns('downloadPlotObject'), 'Download Plot Object')
   )
 }

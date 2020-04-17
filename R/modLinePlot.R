@@ -55,8 +55,8 @@ modLinePlot <- function(input, output, session, report, validation) {
         p <- suppressMessages(mipLineHistorical(x    = selection()$x,
                              x_hist = validation,
                              size   = 10,
-                             ylab   = selection()$x$unit,
-                             title  = selection()$x$variable,
+                             ylab   = as.character(selection()$x$unit[1]),
+                             title  = as.character(selection()$x$variable[1]),
                              scales = ifelse(input$free_y,"free_y","fixed")))
       }
     } else p <- NULL
@@ -64,15 +64,21 @@ modLinePlot <- function(input, output, session, report, validation) {
     return(p)
   })
   
+  createFilename <- function(variable,ending) {
+    out <- sub("_+$","",gsub("\\.+","_",make.names(variable[1])))
+    out <- paste0(out,".",ending)
+    return(out)
+  }
+  
   output$downloadLinePlot <- downloadHandler(
-    filename = "export.pdf",
+    filename = reactive(createFilename(selection()$x$variable,"pdf")),
     content = function(file) {
       ggsave(file, plot = lineplot(), device = "pdf",scale=1,width=20,height=18,units="cm",dpi=150)
     }
   )
   
   output$downloadPlotObject <- downloadHandler(
-    filename = "ggplot.rds",
+    filename = reactive(createFilename(selection()$x$variable,"rds")),
     content = function(file) {
       saveRDS(lineplot(),file=file)
     }
