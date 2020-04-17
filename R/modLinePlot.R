@@ -25,7 +25,7 @@ modLinePlot <- function(input, output, session, report, validation) {
                           xdata        = list(validation=validation()),
                           xdataExclude = c("scenario","period"),
                           order        = c("variable"),
-                          name         = "LinePlot")
+                          name         = sub("-$","",session$ns('')))
                         
 
   lineplot <- reactive({

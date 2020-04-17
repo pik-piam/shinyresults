@@ -11,7 +11,7 @@
 #' @return a reactive containing a merged data.frame containing results of selected runs
 #' @author Jan Philipp Dietrich
 #' @seealso \code{\link{modFilterUI}}, \code{\link{appModelstats}}
-#' @importFrom shiny updateSliderInput withProgress incProgress
+#' @importFrom shiny updateSliderInput withProgress incProgress Progress
 #' @importFrom tools file_path_sans_ext
 #' @importFrom data.table is.data.table rbindlist
 #' @importFrom curl curl new_handle
@@ -91,7 +91,6 @@ modRunSelect <- function(input, output, session, file, resultsfolder, username=N
       out <- readLines(file)
     }
   }
-  
   progress <- Progress$new(session, min=1, max=10)
   on.exit(progress$close())
   progress$set(message = 'Read in run overview',
