@@ -160,13 +160,9 @@ modFilter <- function(input, output, session, data, exclude=NULL, showAll=FALSE,
       x$activefilter <- NULL
       if(showAll) {
         removeUI(selector = paste0("#",session$ns("filterselector")))
-        for(xf in x$filter){
-          insertUI(
-            selector = paste0("#",session$ns("filterend")),
-            where = "beforeBegin",
-            ui = selectUI(session,xf, x$data[[xf]], x$filterclass[xf], x$filtermultiple[xf])
-          )
-        }
+        tmpfunc <- function(xf,x) return(selectUI(session,xf, x$data[[xf]], x$filterclass[xf], x$filtermultiple[xf]))
+        UIlist <- lapply(x$filter,tmpfunc,x)
+        output$moreFilters <- renderUI(tagList(UIlist))
         x$activefilter <- x$filter
       } else {
         updateSelectInput(session, "filter", choices=x$filter)
@@ -183,7 +179,7 @@ modFilter <- function(input, output, session, data, exclude=NULL, showAll=FALSE,
       message("  done! (",round(as.numeric(Sys.time()-start,units="secs"),2),"s)")
     }  
   }
-  
+ 
   observeEvent(data(),{
     initialize(input,session,data,x,exclude,order,multiple)
   })
