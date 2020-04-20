@@ -30,7 +30,7 @@ modLinePlot <- function(input, output, session, report, validation) {
 
   lineplot <- reactive({
     start <- Sys.time()
-    message(".:|modAreaPlot|:. Create line plot..", appendLF = FALSE)
+    message(".:|",sub("-$","",session$ns('')),"|:.  Create line plot..", appendLF = FALSE)
     if(report$ready()) {
       if(nrow(selection()$x)>20000) {
         p <- ggplot() +  

@@ -74,7 +74,8 @@ appResults <- function(cfg=getOption("appResults"),readFilePar=FALSE,...) {
   #client-sided function
   ui <- fluidPage(
     div(style = "position:absolute;right:1em;", 
-        actionButton("button", label = "Add LinePlot")
+        actionButton("LineButton", label = "Add LinePlot"),
+        actionButton("AreaButton", label = "Add AreaPlot")
     ),
     tabsetPanel(id="append_tab", type="tabs",
             tabPanel("Select Data",sidebarLayout(
@@ -97,10 +98,10 @@ appResults <- function(cfg=getOption("appResults"),readFilePar=FALSE,...) {
                 mainPanel(plotOutput("LinePlot1",height = "800px",width = "auto"))
               )
             ),
-            tabPanel("AreaPlot",
+            tabPanel("AreaPlot1",
                      sidebarLayout(
-                       sidebarPanel(modAreaPlotUI("areaplot")),
-                       mainPanel(plotlyOutput("areaplot",height = "800px",width = "auto"))
+                       sidebarPanel(modAreaPlotUI("AreaPlot1")),
+                       mainPanel(plotlyOutput("AreaPlot1",height = "800px",width = "auto"))
                      )
             )
       )
@@ -144,24 +145,40 @@ appResults <- function(cfg=getOption("appResults"),readFilePar=FALSE,...) {
       val_full <- val_full[val_full$period > 1950,] #show validation data only for years > 1950
     }
     
-    counter <- reactiveValues(Plot = 1)
+    counter <- reactiveValues(LinePlot = 1, AreaPlot = 1)
 
     rep_full <- callModule(modRunSelect,"select",file=file, resultsfolder=resultsfolder, username=username, password=password, readFilePar=readFilePar)
   
-    observeEvent(input$button, {
-      counter$Plot <- counter$Plot+1
-      appendTab(inputId = "append_tab", 
-                tabPanel(paste0("LinePlot",counter$Plot),
-                         sidebarLayout(
-                           sidebarPanel(modLinePlotUI(paste0("LinePlot",counter$Plot))),
-                           mainPanel(plotOutput(paste0("LinePlot",counter$Plot),height = "800px",width = "auto")))))
-    })
+    addtab <- function(type="Line",counter,plot=plotOutput) {
+      if(type=="Line") {
+        ui <- modLinePlotUI
+      } else if(type=="Area") {
+        ui <- modAreaPlotUI
+      } else {
+        stop("Unknown type ",type,"!")
+      }
+      tabname <- paste0(type,"Plot",counter)
+      if(counter>1) {
+        insertTab(inputId = "append_tab", 
+                  tabPanel(tabname,
+                           sidebarLayout(
+                             sidebarPanel(ui(tabname)),
+                             mainPanel(plot(tabname,height = "800px",width = "auto")))),
+                  target = paste0(type,"Plot",counter-1),
+                  position = "after")
+      }
+      if(type=="Line") {
+        output[[tabname]] <- callModule(modLinePlot,tabname,report=rep_full,validation=reactive(val_full))
+      } else if(type=="Area") {
+        output[[tabname]] <- callModule(modAreaPlot,tabname,report=rep_full)  
+      }
+    }
     
-    observeEvent(counter$Plot,{
-      output[[paste0("LinePlot",counter$Plot)]] <- callModule(modLinePlot,paste0("LinePlot",counter$Plot),report=rep_full,validation=reactive(val_full))
-    })
-
-    output$areaplot <- callModule(modAreaPlot,"areaplot",report=rep_full)
+    observeEvent(input$LineButton, {counter$LinePlot <- counter$LinePlot+1})
+    observeEvent(counter$LinePlot, addtab("Line",counter$LinePlot, plot=plotOutput))
+    
+    observeEvent(input$AreaButton, {counter$AreaPlot <- counter$AreaPlot+1})
+    observeEvent(counter$AreaPlot, addtab("Area",counter$AreaPlot, plot=plotlyOutput))
     
     observeEvent(rep_full$variables(),{
       if(!setequal(val$variables,rep_full$variables())) {

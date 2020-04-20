@@ -120,7 +120,7 @@ modRunSelect <- function(input, output, session, file, resultsfolder, username=N
   
   observeEvent(input$load, {
     start <- Sys.time()
-    message(".:|modRunSelect|:. Read data..", appendLF = FALSE)
+    message(".:|RunSelect|:.  Read data..", appendLF = FALSE)
     x$out <- fullReport()
     x$ready <- TRUE
     message("done! (",round(as.numeric(Sys.time()-start,units="secs"),2),"s)")

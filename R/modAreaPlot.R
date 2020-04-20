@@ -14,7 +14,7 @@ modAreaPlot <- function(input, output, session, report) {
   addGroup <- function(report) {
     start <- Sys.time()
     if(is.null(report)) return(NULL)
-    message(".:|modAreaPlot|:. add groups..", appendLF = FALSE)
+    message(".:|",sub("-$","",session$ns('')),"|:.  add groups..", appendLF = FALSE)
     tmp <- extractVariableGroups(levels(report$variable))
     out <- merge(as.data.table(report),as.data.table(tmp))
     message("done! (",round(as.numeric(Sys.time()-start,units="secs"),2),"s)")
@@ -27,11 +27,11 @@ modAreaPlot <- function(input, output, session, report) {
                           showAll      = TRUE, 
                           multiple     = c(group=FALSE),
                           order        = c("group"),
-                          name         = "AreaPlot")
+                          name         = sub("-$","",session$ns('')))
 
   areaplot <- reactive({
     start <- Sys.time()
-    message(".:|modAreaPlot|:. Create area plot..", appendLF = FALSE)
+    message(".:|",sub("-$","",session$ns('')),"|:.  Create area plot..", appendLF = FALSE)
     if(report$ready()) {
       if(nrow(selection()$x)>5000) {
         p <- ggplot() +  
