@@ -52,14 +52,28 @@ modAreaPlot <- function(input, output, session, report) {
     return(out)
   }
   
-  output$downloadPlot <- downloadHandler(
+  output$downloadPlotPDF <- downloadHandler(
     filename = reactive(createFilename(selection()$x$variable,"pdf")),
     content = function(file) {
       ggsave(file, plot = areaplot(), device = "pdf",scale=1,width=20,height=18,units="cm",dpi=150)
     }
   )
   
-  output$downloadPlotObject <- downloadHandler(
+  output$downloadPlotPNG <- downloadHandler(
+    filename = reactive(createFilename(selection()$x$variable,"png")),
+    content = function(file) {
+      ggsave(file, plot = areaplot(), device = "png",scale=1,width=20,height=18,units="cm",dpi=150)
+    }
+  )
+  
+  output$downloadPlotEPS <- downloadHandler(
+    filename = reactive(createFilename(selection()$x$variable,"eps")),
+    content = function(file) {
+      ggsave(file, plot = areaplot(), device = "eps",scale=1,width=20,height=18,units="cm",dpi=150)
+    }
+  )
+  
+  output$downloadPlotRDS <- downloadHandler(
     filename = reactive(createFilename(selection()$x$variable,"rds")),
     content = function(file) {
       saveRDS(areaplot(),file=file)

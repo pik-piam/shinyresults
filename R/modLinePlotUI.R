@@ -17,7 +17,9 @@ modLinePlotUI <- function(id) {
       column(6,checkboxInput(ns('show_proj'), 'Projections', value = TRUE)),
       column(6,checkboxInput(ns('free_y'),     'Free Y',     value = FALSE))
     ),
-    downloadButton(ns('downloadLinePlot'), 'Download Plot'),
-    downloadButton(ns('downloadPlotObject'), 'Download Plot Object')
+    downloadButton(ns('downloadPlotPNG'), 'PNG'),
+    downloadButton(ns('downloadPlotPDF'), 'PDF'),
+    downloadButton(ns('downloadPlotEPS'), 'EPS'),
+    downloadButton(ns('downloadPlotRDS'), 'RDS')
   )
 }
