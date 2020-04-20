@@ -147,8 +147,7 @@ appResults <- function(cfg=getOption("appResults"),readFilePar=FALSE,...) {
     counter <- reactiveValues(Plot = 1)
 
     rep_full <- callModule(modRunSelect,"select",file=file, resultsfolder=resultsfolder, username=username, password=password, readFilePar=readFilePar)
-    
-    #In development. Works at the moment only if the LinePlots are added before loading the data.
+  
     observeEvent(input$button, {
       counter$Plot <- counter$Plot+1
       appendTab(inputId = "append_tab", 

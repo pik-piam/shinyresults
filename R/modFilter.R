@@ -136,7 +136,7 @@ modFilter <- function(input, output, session, data, exclude=NULL, showAll=FALSE,
   }
 
 
-  initialize <- function(input,session,data,x,exclude,order,multiple) {
+  initialize <- function(input,session,data,x,exclude,order,multiple,showAll) {
     if(!is.null(data())) {
       start <- Sys.time()
       message(name," Initialize modFilter..", appendLF=FALSE)
@@ -179,16 +179,8 @@ modFilter <- function(input, output, session, data, exclude=NULL, showAll=FALSE,
       message("  done! (",round(as.numeric(Sys.time()-start,units="secs"),2),"s)")
     }  
   }
- 
-  observeEvent(data(),{
-    initialize(input,session,data,x,exclude,order,multiple)
-  })
   
-  observe({
-      x$out <- selectdata(data(),input,x$activefilter,xdata,xdataExclude)
-  })
-  
-  observeEvent(input$filter, {
+  updatefilter <- function(input,x) {
     if(!(input$filter %in% x$activefilter)){
       insertUI(
         selector = paste0("#",session$ns("filterend")),
@@ -212,7 +204,18 @@ modFilter <- function(input, output, session, data, exclude=NULL, showAll=FALSE,
         x$activefilter <- setdiff(x$activefilter,f)
       }
     }
+  }
+  
+ 
+  observeEvent(data(),{
+    initialize(input,session,data,x,exclude,order,multiple,showAll)
   })
+  
+  observe({
+      x$out <- selectdata(data(),input,x$activefilter,xdata,xdataExclude)
+  })
+  
+  observeEvent(input$filter, if(!showAll) updatefilter(input,x))
   
   output$observations <- renderText(paste0(dim(x$out$x)[1]," observations"))
   
