@@ -14,12 +14,12 @@
 
 appResultsLocal <- function(folder="output/", valfile=NULL) {
   
-  if (!requireNamespace("lucode", quietly = TRUE)) {
-    stop("Package \"lucode\" needed for this function to work. Please install it.",
+  if (!requireNamespace("lucode2", quietly = TRUE)) {
+    stop("Package \"lucode2\" needed for this function to work. Please install it.",
          call. = FALSE)
   }
   
-  d <- lucode::mergestatistics(dir=folder,pattern="runstatistics.rda")
+  d <- lucode2::mergestatistics(dir=folder,pattern="runstatistics.rda")
   d$.id <- sub("runstatistics$","report",d$.id)
   file <- paste0(folder,"/summary.rds")
   saveRDS(d,file)

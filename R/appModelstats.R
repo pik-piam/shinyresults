@@ -1,7 +1,7 @@
 #' Analyze Model Statistics
 #'
-#' Shiny app to analyze statistics collected with \code{\link[lucode]{runstatistics}}
-#' and merged with \code{\link[lucode]{mergestatistics}}
+#' Shiny app to analyze statistics collected with \code{\link[lucode2]{runstatistics}}
+#' and merged with \code{\link[lucode2]{mergestatistics}}
 #'
 #' @param files path to rds-files from which statistics should be read
 #' @param resultsfolder path to a folder containing model results of the corresponding runs

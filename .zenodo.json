@@ -1,0 +1,13 @@
+{
+  "title": "shinyresults: A collection of shiny apps and modules to visualize/handle model results",
+  "version": "0.28.1",
+  "description": "<p>A collection of tools which allow to manipulate and analyze code.<\/p>",
+  "creators": [
+    {
+      "name": "Dietrich, Jan Philipp"
+    },
+    {
+      "name": "Humpenoeder, Florian"
+    }
+  ]
+}
