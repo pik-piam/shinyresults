@@ -166,7 +166,7 @@ modFilter <- function(input, output, session, data, exclude=NULL, showAll=FALSE,
         x$activefilter <- x$filter
       } else {
         updateSelectInput(session, "filter", choices=x$filter)
-        if(input$filter==x$filter[1]) {
+        if(length(x$filter)>0 && input$filter==x$filter[1]) {
           insertUI(
             selector = paste0("#",session$ns("filterend")),
             where = "beforeBegin",
