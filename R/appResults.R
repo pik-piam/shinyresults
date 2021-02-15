@@ -82,7 +82,7 @@ appResults <- function(cfg=getOption("appResults"),readFilePar=FALSE,...) {
               sidebarPanel(tags$div(id="navigation",
                                     selectInput(inputId = "xaxis",
                                                 label = "Choose X-Axis",
-                                                choices = "revision_date"),
+                                                choices = "date"),
                                     selectInput(inputId = "yaxis",
                                                 label = "Choose Y-Axis",
                                                 choices = "runtime"),
@@ -183,7 +183,7 @@ appResults <- function(cfg=getOption("appResults"),readFilePar=FALSE,...) {
     observeEvent(rep_full$variables(),{
       if(!setequal(val$variables,rep_full$variables())) {
         val$variables <- rep_full$variables()
-        updateSelectInput(session, "xaxis",  choices=val$variables, selected = "revision_date")
+        updateSelectInput(session, "xaxis",  choices=val$variables, selected = "date")
         updateSelectInput(session, "yaxis",  choices=val$variables, selected = "runtime")
         updateSelectInput(session, "color",  choices=val$variables, selected = "user")   
       }

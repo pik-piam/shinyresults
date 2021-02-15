@@ -1,8 +1,8 @@
 # A collection of shiny apps and modules to visualize/handle model results
 
-R package **shinyresults**, version **0.28.2**
+R package **shinyresults**, version **0.28.3**
 
-[![Travis build status](https://travis-ci.com/pik-piam/shinyresults.svg?branch=master)](https://travis-ci.com/pik-piam/shinyresults) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1478922.svg)](https://doi.org/10.5281/zenodo.1478922) 
+[![CRAN status](https://www.r-pkg.org/badges/version/shinyresults)](https://cran.r-project.org/package=shinyresults) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1478922.svg)](https://doi.org/10.5281/zenodo.1478922)  [![R build status](https://github.com/pik-piam/shinyresults/workflows/check/badge.svg)](https://github.com/pik-piam/shinyresults/actions) [![codecov](https://codecov.io/gh/pik-piam/shinyresults/branch/master/graph/badge.svg)](https://codecov.io/gh/pik-piam/shinyresults)
 
 ## Purpose and Functionality
 
@@ -38,9 +38,10 @@ In case of questions / problems please contact Jan Philipp Dietrich <dietrich@pi
 
 To cite package **shinyresults** in publications use:
 
-Dietrich J, Humpenoeder F (2020). _shinyresults: A collection of shiny apps and modules to visualize/handle
-model results_. doi: 10.5281/zenodo.1478922 (URL: https://doi.org/10.5281/zenodo.1478922), R package version
-0.28.2, <URL: https://github.com/pik-piam/shinyresults>.
+Dietrich J, Humpenoeder F (2021). _shinyresults: A collection of shiny apps and modules to
+visualize/handle model results_. doi: 10.5281/zenodo.1478922 (URL:
+https://doi.org/10.5281/zenodo.1478922), R package version 0.28.3, <URL:
+https://github.com/pik-piam/shinyresults>.
 
 A BibTeX entry for LaTeX users is
 
@@ -48,8 +49,8 @@ A BibTeX entry for LaTeX users is
 @Manual{,
   title = {shinyresults: A collection of shiny apps and modules to visualize/handle model results},
   author = {Jan Philipp Dietrich and Florian Humpenoeder},
-  year = {2020},
-  note = {R package version 0.28.2},
+  year = {2021},
+  note = {R package version 0.28.3},
   doi = {10.5281/zenodo.1478922},
   url = {https://github.com/pik-piam/shinyresults},
 }

@@ -40,10 +40,14 @@ modRunSelect <- function(input, output, session, file, resultsfolder, username=N
       else return(tmp)
     }
     
-    if("date" %in% names(out)) out$date <- conv_date(out$date)
+    if("date" %in% names(out)){
+      out$date <- conv_date(out$date)
+      if(is.null(out$year))  try(out$year <- format(out$date,"%Y"))
+    }
     if("revision_date" %in% names(out)) out$revision_date <- conv_date(out$revision_date)
     if(!is.data.table(out)) out <- as.data.table(out)
-    return(out)
+    reorder <- union(intersect("year",names(out)), names(out))
+    return(out[, reorder, with = FALSE])
   }
   
   readreports <- function(ids, resultsfolder, username=NULL, password=NULL) {
