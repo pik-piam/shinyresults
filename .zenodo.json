@@ -1,6 +1,6 @@
 {
   "title": "shinyresults: A collection of shiny apps and modules to visualize/handle model results",
-  "version": "0.28.3",
+  "version": "0.29.0",
   "description": "<p>A collection of tools which allow to manipulate and analyze code.<\/p>",
   "creators": [
     {

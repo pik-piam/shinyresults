@@ -15,7 +15,8 @@ modLinePlotUI <- function(id) {
     fluidRow(
       column(6,checkboxInput(ns('show_hist'), 'History',     value = TRUE)),
       column(6,checkboxInput(ns('show_proj'), 'Projections', value = TRUE)),
-      column(6,checkboxInput(ns('free_y'),     'Free Y',     value = FALSE))
+      column(6,checkboxInput(ns('free_y'),     'Free Y (Multi-Panel)',     value = FALSE)),
+      column(6,checkboxInput(ns('auto_y'),     'Automatic Y scaling',     value = FALSE))
     ),
     downloadButton(ns('downloadPlotPNG'), 'PNG'),
     downloadButton(ns('downloadPlotPDF'), 'PDF'),

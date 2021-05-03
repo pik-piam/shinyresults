@@ -58,7 +58,9 @@ modLinePlot <- function(input, output, session, report, validation) {
                              size   = 10,
                              ylab   = as.character(selection()$x$unit[1]),
                              title  = as.character(selection()$x$variable[1]),
-                             scales = ifelse(input$free_y,"free_y","fixed")))
+                             scales = ifelse(input$free_y,"free_y","fixed"),
+                             ylim = ifelse(input$auto_y,NULL,0)
+                             ))
       }
     } else p <- NULL
     message("done! (",round(as.numeric(Sys.time()-start,units="secs"),2),"s)")
@@ -99,6 +101,6 @@ modLinePlot <- function(input, output, session, report, validation) {
   )
   
   return(renderCachedPlot(lineplot(), res = 120,
-                          cacheKeyExpr = { list(selection(), input$show_hist, input$show_proj, input$free_y) }))
+                          cacheKeyExpr = { list(selection(), input$show_hist, input$show_proj, input$free_y, input$auto_y) }))
   
 }
