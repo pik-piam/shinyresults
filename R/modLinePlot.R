@@ -59,7 +59,7 @@ modLinePlot <- function(input, output, session, report, validation) {
                              ylab   = as.character(selection()$x$unit[1]),
                              title  = as.character(selection()$x$variable[1]),
                              scales = ifelse(input$free_y,"free_y","fixed"),
-                             ylim = ifelse(input$auto_y,NULL,0)
+                             ylim = switch(input$auto_y + 1, 0, NULL)
                              ))
       }
     } else p <- NULL
