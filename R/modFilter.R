@@ -42,7 +42,7 @@ modFilter <- function(input, output, session, data, exclude=NULL, showAll=FALSE,
         slmax <- max(data[[f]], na.rm=TRUE)
         slmin <- min(data[[f]], na.rm=TRUE)
         if(x[[slf]]["max"]!=slmax | x[[slf]]["min"]!=slmin) {
-          updateSliderInput(session, slf,   min = slmin, max = slmax,
+          updateSliderInput(session, slf,   min = slmin - 60, max = slmax + 60,
                             value = input[[slf]])
           x[[slf]]["max"] <- slmax
           x[[slf]]["min"] <- slmin
@@ -98,8 +98,8 @@ modFilter <- function(input, output, session, data, exclude=NULL, showAll=FALSE,
     if(filter=="") return(NULL)
     if(is.na(class)) class <- "NA"
     if(class=="POSIXct") {
-      min <- min(data, na.rm=TRUE)
-      max <- max(data, na.rm=TRUE)
+      min <- min(data, na.rm=TRUE) - 60
+      max <- max(data, na.rm=TRUE) + 60
       id <- paste0("slider", filter)
       x[[id]] <- c(min=min,max=max)
       return(tags$div(id=session$ns(paste0("div",filter)),
@@ -107,7 +107,7 @@ modFilter <- function(input, output, session, data, exclude=NULL, showAll=FALSE,
                                   label = filter,
                                   min = min,
                                   max = max,
-                                  value = c(min(data, na.rm=TRUE),max(data, na.rm=TRUE)),
+                                  value = c(min(data, na.rm=TRUE) - 60 ,max(data, na.rm=TRUE) + 60),
                                   ticks = FALSE,
                                   timeFormat = "%F %H:%M")))
     } else if(class %in% c("integer","numeric")) {
