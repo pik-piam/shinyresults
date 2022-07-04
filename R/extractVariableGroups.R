@@ -36,6 +36,3 @@ extractVariableGroups <- function(x) {
   }
   return(data.table(variable=out,group=names(out)))
 }
-
-
-
