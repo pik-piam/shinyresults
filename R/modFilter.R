@@ -112,7 +112,7 @@ modFilter <- function(input, output, session, data, exclude = NULL, showAll = FA
       id <- paste0("slider", filter)
       x[[id]] <- c(min = min, max = max)
       if (filter == "date" && !is.null(preselectMinDate)) {
-        value = c(preselectMinDate, max(data, na.rm = TRUE) + 60)
+        value = c(max(preselectMinDate, min(data, na.rm = TRUE) - 60), max(data, na.rm = TRUE) + 60)
       } else {
         value = c(min(data, na.rm = TRUE) - 60, max(data, na.rm = TRUE) + 60)
       }
