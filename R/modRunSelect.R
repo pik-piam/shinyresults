@@ -117,7 +117,7 @@ modRunSelect <- function(input, output, session, file, resultsfolder, username=N
                value = 9)
 
   preselectYear <- format(as.POSIXct(Sys.time()), "%Y")
-  if (format(Sys.time(), "%m") == "1") preselectYear <- c(as.character(as.integer(preselectYear) - 1), preselectYear)
+  if (format(Sys.time(), "%m") %in% c("1", "2", "3")) preselectYear <- c(as.character(as.integer(preselectYear) - 1), preselectYear)
   preselectMinDate <- as.POSIXct(Sys.time()) - 3*60*60*24*31
   selection <- callModule(modFilter, "runfilter", data = reactive(data), exclude = ".id", name = "RunSelect",
                           order = c("date"), preselectYear = preselectYear, preselectMinDate = preselectMinDate)
