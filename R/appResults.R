@@ -21,13 +21,13 @@
 #' @param ... additional information to overwrite one of the settings from the cfg directly:
 #'            file, resultsfolder, valfile, username or password.
 #' @author Florian Humpenoeder, Jan Philipp Dietrich, Lavinia Baumstark, Pascal Sauer
-#' @importFrom shiny appendTab tagList isolate div insertTab reactiveValues observeEvent updateTextInput
+#' @importFrom shiny tagList div insertTab reactiveValues observeEvent updateTextInput
 #' observe updateSelectInput reactive hoverOpts uiOutput sliderInput
 #' renderPrint renderDataTable downloadHandler fluidPage navbarPage tabPanel sidebarLayout sidebarPanel
 #' fileInput tags selectInput mainPanel tabsetPanel wellPanel fluidRow column radioButtons conditionalPanel
 #' checkboxInput checkboxGroupInput numericInput textInput downloadButton dataTableOutput h2 verbatimTextOutput
 #' shinyApp renderPlot plotOutput renderUI HTML nearPoints updateCheckboxInput
-#' updateSliderInput hideTab showTabrunApp Progress
+#' updateSliderInput hideTab runApp Progress
 #' @importFrom utils write.csv
 #' @importFrom data.table fread setcolorder as.data.table data.table setnames
 #' @importFrom trafficlight trafficlight
