@@ -1,33 +1,40 @@
-Package: shinyresults
 Type: Package
-Title: A collection of shiny apps and modules to visualize/handle model results
+Package: shinyresults
+Title: A collection of shiny apps and modules to visualize/handle model
+    results
 Version: 0.29.4.9001
 Date: 2023-12-15
-Authors@R: c(person("Jan Philipp", "Dietrich", email = "dietrich@pik-potsdam.de", role = c("aut","cre")),
-             person("Florian", "Humpenoeder", email = "humpenoeder@pik-potsdam.de", role = "aut"))
-Description: A collection of tools which allow to manipulate and analyze code.
-Depends: 
-  shiny
-Imports: 
-  data.table,
-  ggplot2,
-  trafficlight,
-  magclass,
-  mip,
-  reshape2,
-  curl,
-  plotly,
-  doSNOW,
-  foreach,
-  snow,
-  parallel
-Suggests:
-    lucode2,
-    quitte (>= 0.3072),
-    covr
-URL: https://github.com/pik-piam/shinyresults, https://doi.org/10.5281/zenodo.1478922
-BugReports: https://github.com/pik-piam/shinyresults/issues
-Encoding: UTF-8
+Authors@R: c(
+    person("Jan Philipp", "Dietrich", , "dietrich@pik-potsdam.de", role = c("aut", "cre")),
+    person("Florian", "Humpenoeder", , "humpenoeder@pik-potsdam.de", role = "aut"),
+    person("Pascal", "Sauer", , "pascal.sauer@pik-potsdam.de", role = "aut")
+  )
+Description: A collection of tools which allow to manipulate and analyze
+    code.
 License: BSD_2_clause + file LICENSE
+URL: https://github.com/pik-piam/shinyresults,
+    https://doi.org/10.5281/zenodo.1478922
+BugReports: https://github.com/pik-piam/shinyresults/issues
+Depends: 
+    shiny
+Imports: 
+    curl,
+    data.table,
+    doSNOW,
+    foreach,
+    ggplot2,
+    magclass,
+    mip,
+    parallel,
+    plotly,
+    reshape2,
+    snow,
+    trafficlight,
+    withr
+Suggests:
+    covr,
+    lucode2,
+    quitte (>= 0.3072)
+Encoding: UTF-8
 LazyData: no
 RoxygenNote: 7.2.3
