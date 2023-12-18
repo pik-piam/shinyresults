@@ -15,6 +15,8 @@
 #' @param order order the filter should be listed (provided as a vector of filter names). Filter not
 #' listed here will be shown after the ones mentioned.
 #' @param name name used to identify the filter in the log
+#' @param preselectYear if provided the year filter will be preselected with this value
+#' @param preselectMinDate if provided the date filter will be preselected with this as lower value
 #' @return  a reactive list with x as the filtered data and xdata containing the list of additional,
 #' filtered data element.
 #' @author Jan Philipp Dietrich
