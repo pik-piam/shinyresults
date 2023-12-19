@@ -4,7 +4,7 @@
 #'
 #' @param input,output,session Default input, output and session objects coming from shiny
 #' @param file report data. Can be a CSV/MIF file or rds file with a quitte object (saved with saveRDS). file can also be a vector of rds files. NULL by default; in this case the user can upload files directly in the tool
-#' @param resultsfolder folder in which MAgPIE run results are stored. File must come with a overview list called "files" 
+#' @param resultsfolder folder in which MAgPIE run results are stored. File must come with a overview list called "files"
 #' @param username username to be used to access file and resultsfolder
 #' @param password password to access file and resultsfolder
 #' @param readFilePar read report data files in parallel (faster) (TRUE) or in sequence (FALSE). Current default is FALSE.
@@ -23,7 +23,7 @@
 #' @export
 
 modRunSelect <- function(input, output, session, file, resultsfolder, username=NULL, password=NULL,readFilePar=FALSE) {
-  
+
   readdata <- function(file,username=NULL, password=NULL,addfilename=FALSE) {
     if(grepl("https://",file)) {
       con <- gzcon(curl(file, handle=new_handle(username=username, password=password)))
@@ -33,13 +33,13 @@ modRunSelect <- function(input, output, session, file, resultsfolder, username=N
       out <- readRDS(file)
     }
     if(addfilename) out$filename <- as.factor(file)
-    
+
     conv_date <- function(x) {
       tmp <- try(as.POSIXct(x, origin="1970-01-01"), silent=TRUE)
-      if("try-error" %in% class(tmp)) return(x) 
+      if("try-error" %in% class(tmp)) return(x)
       else return(tmp)
     }
-    
+
     if("date" %in% names(out)){
       out$date <- conv_date(out$date)
       if(is.null(out$year))  try(out$year <- format(out$date,"%Y"))
@@ -49,7 +49,7 @@ modRunSelect <- function(input, output, session, file, resultsfolder, username=N
     reorder <- union(intersect("year",names(out)), names(out))
     return(out[, reorder, with = FALSE])
   }
-  
+
   readreports <- function(ids, resultsfolder, username=NULL, password=NULL) {
     files <- paste0(resultsfolder,"/",ids,".rds")
     withProgress(message = 'Read selected data', value = 0, {
@@ -61,14 +61,14 @@ modRunSelect <- function(input, output, session, file, resultsfolder, username=N
           readdata(file, username=username, password=password, addfilename = TRUE)
         }
       } else {
-        fout <- list() 
+        fout <- list()
         for(file in files) {
           incProgress(1/(length(files)+1), detail = basename(file))
           fout[[file]] <- readdata(file, username=username, password=password, addfilename = TRUE)
         }
         incProgress(1, detail = "merge data")
         fout <- rbindlist(fout)
-        
+
       }
     })
     if (nlevels(fout$scenario) != nlevels(fout$filename)) {
@@ -87,7 +87,7 @@ modRunSelect <- function(input, output, session, file, resultsfolder, username=N
     fout$filename <- NULL
     return(fout)
   }
-  
+
   readtextfile <- function(file, username=NULL, password=NULL) {
     if(grepl("https://",file)) {
       out <- readLines(curl(file, handle=new_handle(username=username, password=password)))
@@ -111,17 +111,21 @@ modRunSelect <- function(input, output, session, file, resultsfolder, username=N
    data <- data[file.exists(paste0(resultsfolder,"/",data$.id,".rds")),]
   }
   if(!is.data.table(data)) data <- as.data.table(data)
-  
+
   progress$set(message = 'Load filter module',
                detail = 'That should be quick...',
                value = 9)
-  
-  selection <- callModule(modFilter,"runfilter",data=reactive(data),exclude=".id",name="RunSelect")
-  
+
+  preselectYear <- format(as.POSIXct(Sys.time()), "%Y")
+  if (format(Sys.time(), "%m") %in% c("1", "2", "3")) preselectYear <- c(as.character(as.integer(preselectYear) - 1), preselectYear)
+  preselectMinDate <- as.POSIXct(Sys.time()) - 3*60*60*24*31
+  selection <- callModule(modFilter, "runfilter", data = reactive(data), exclude = ".id", name = "RunSelect",
+                          order = c("date"), preselectYear = preselectYear, preselectMinDate = preselectMinDate)
+
   x <- reactiveValues(out=NULL, ready=FALSE)
-  
+
   fullReport <- reactive(readreports(selection()$x[[".id"]], resultsfolder, username=username, password=password))
-  
+
   observeEvent(input$load, {
     start <- Sys.time()
     message(".:|RunSelect|:.  Read data..", appendLF = FALSE)

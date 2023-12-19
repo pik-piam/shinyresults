@@ -15,7 +15,9 @@ modFilter(
   xdata = NULL,
   xdataExclude = NULL,
   order = NULL,
-  name = NULL
+  name = NULL,
+  preselectYear = NULL,
+  preselectMinDate = NULL
 )
 }
 \arguments{
@@ -40,6 +42,10 @@ xdata should only filtered for a subset of filters applied to data}
 listed here will be shown after the ones mentioned.}
 
 \item{name}{name used to identify the filter in the log}
+
+\item{preselectYear}{if provided the year filter will be preselected with this value}
+
+\item{preselectMinDate}{if provided the date filter will be preselected with this as lower value}
 }
 \value{
 a reactive list with x as the filtered data and xdata containing the list of additional,

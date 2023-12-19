@@ -15,6 +15,8 @@
 #' @param order order the filter should be listed (provided as a vector of filter names). Filter not
 #' listed here will be shown after the ones mentioned.
 #' @param name name used to identify the filter in the log
+#' @param preselectYear if provided the year filter will be preselected with this value
+#' @param preselectMinDate if provided the date filter will be preselected with this as lower value
 #' @return  a reactive list with x as the filtered data and xdata containing the list of additional,
 #' filtered data element.
 #' @author Jan Philipp Dietrich
@@ -24,7 +26,9 @@
 #' @export
 
 modFilter <- function(input, output, session, data, exclude = NULL, showAll = FALSE,
-                      multiple = NULL, xdata = NULL, xdataExclude = NULL, order = NULL, name = NULL) {
+                      multiple = NULL, xdata = NULL, xdataExclude = NULL, order = NULL,
+                      name = NULL, preselectYear = NULL, preselectMinDate = NULL) {
+
   if (!is.null(name)) name <- paste0(".:|", name, "|:. ")
 
   for (i in names(xdata)) xdata[[i]] <- as.data.table(xdata[[i]])
@@ -99,7 +103,7 @@ modFilter <- function(input, output, session, data, exclude = NULL, showAll = FA
     return(out)
   }
 
-  selectUI <- function(session, filter, data, class, multiple) {
+  selectUI <- function(session, filter, data, class, multiple, preselectYear, preselectMinDate) {
     if (filter == "") {
       return(NULL)
     }
@@ -109,6 +113,11 @@ modFilter <- function(input, output, session, data, exclude = NULL, showAll = FA
       max <- max(data, na.rm = TRUE) + 60
       id <- paste0("slider", filter)
       x[[id]] <- c(min = min, max = max)
+      if (filter == "date" && !is.null(preselectMinDate)) {
+        value = c(max(preselectMinDate, min(data, na.rm = TRUE) - 60), max(data, na.rm = TRUE) + 60)
+      } else {
+        value = c(min(data, na.rm = TRUE) - 60, max(data, na.rm = TRUE) + 60)
+      }
       return(tags$div(
         id = session$ns(paste0("div", filter)),
         sliderInput(
@@ -116,7 +125,7 @@ modFilter <- function(input, output, session, data, exclude = NULL, showAll = FA
           label = filter,
           min = min,
           max = max,
-          value = c(min(data, na.rm = TRUE) - 60, max(data, na.rm = TRUE) + 60),
+          value = value,
           ticks = FALSE,
           timeFormat = "%F %H:%M"
         )
@@ -142,24 +151,33 @@ modFilter <- function(input, output, session, data, exclude = NULL, showAll = FA
       choices <- sort(unique(data))
       id <- paste0("select", filter)
       x[[id]] <- choices
+      if (filter == "year") {
+        selected <- preselectYear
+      } else {
+        selected <- NULL
+      }
       return(tags$div(
         id = session$ns(paste0("div", filter)),
         selectInput(
           inputId = session$ns(id),
           label = filter,
           choices = choices,
-          multiple = multiple, "display:inline"
-        )
+          selected = selected,
+          multiple = multiple
+        )#, "display:inline"
       ))
     }
   }
 
 
-  initialize <- function(input, session, data, x, exclude, order, multiple, showAll) {
+  initialize <- function(input, session, data, x, exclude, order, multiple, showAll, preselectYear, preselectMinDate) {
+
     if (!is.null(data())) {
       start <- Sys.time()
       message(name, " Initialize modFilter..", appendLF = FALSE)
       x$data <- data()
+
+      # get all filters that actually make sense (because there is more than one choice) and save them in x$filter
       multipleChoices <- function(x) {
         x <- x[!is.na(x)]
         if (length(x) < 2) {
@@ -169,34 +187,55 @@ modFilter <- function(input, output, session, data, exclude = NULL, showAll = FA
       }
       multipleChoices <- as.vector(sapply(x$data, multipleChoices))
       x$filter <- names(x$data)[!(names(x$data) %in% exclude) & multipleChoices]
+
+      # order the filter
       if (!is.null(order)) x$filter <- c(intersect(order, x$filter), setdiff(x$filter, order))
+
+      # get filter class to be used as input to selectUI
       x$filterclass <- sapply(x$data, function(x) {
         return(class(x)[1])
       })
+
+      # multiple choices allowed?
       x$filtermultiple <- multiple
       x$filtermultiple[x$filter[!(x$filter %in% names(multiple))]] <- TRUE
+
+      # remove active filter
       for (f in x$activefilter) {
         removeUI(
           selector = paste0("#", session$ns(paste0("div", escapeRegex(f))))
         )
       }
       x$activefilter <- NULL
+
+      # here we actually initialize the filter
       if (showAll) {
         removeUI(selector = paste0("#", session$ns("filterselector")))
         tmpfunc <- function(xf, x) {
-          return(selectUI(session, xf, x$data[[xf]], x$filterclass[xf], x$filtermultiple[xf]))
+          return(selectUI(session, xf, x$data[[xf]], x$filterclass[xf], x$filtermultiple[xf],
+                          preselectYear, preselectMinDate))
         }
         uiList <- lapply(x$filter, tmpfunc, x)
         output$moreFilters <- renderUI(tagList(uiList))
         x$activefilter <- x$filter
       } else {
         updateSelectInput(session, "filter", choices = x$filter)
+        if ("year" %in% x$filter) {
+          insertUI(
+            selector = paste0("#", session$ns("filterend")),
+            where = "beforeBegin",
+            ui = selectUI(session, "year", x$data[["year"]],  x$filterclass["year"], x$filtermultiple["year"],
+                          preselectYear, preselectMinDate)
+          )
+
+          x$activefilter <- c(x$activefilter, c("year"))
+        }
         if (length(x$filter) > 0 && input$filter == x$filter[1]) {
           insertUI(
             selector = paste0("#", session$ns("filterend")),
             where = "beforeBegin",
-            ui = selectUI(session, input$filter, x$data[[input$filter]],
-                          x$filterclass[input$filter], x$filtermultiple[input$filter])
+            ui = selectUI(session, input$filter, x$data[[input$filter]], x$filterclass[input$filter],
+                          x$filtermultiple[input$filter], preselectYear, preselectMinDate)
           )
           x$activefilter <- c(x$activefilter, input$filter)
         }
@@ -206,17 +245,18 @@ modFilter <- function(input, output, session, data, exclude = NULL, showAll = FA
     }
   }
 
-  updatefilter <- function(input, x) {
+  updatefilter <- function(input, x, preselectYear, preselectMinDate) {
     if (!(input$filter %in% x$activefilter)) {
       insertUI(
         selector = paste0("#", session$ns("filterend")),
         where = "beforeBegin",
-        ui = selectUI(session, input$filter, x$out$x[[input$filter]],
-                      x$filterclass[input$filter], x$filtermultiple[input$filter])
+        ui = selectUI(session, input$filter, x$out$x[[input$filter]], x$filterclass[input$filter],
+                      x$filtermultiple[input$filter], preselectYear, preselectMinDate)
       )
       x$activefilter <- c(x$activefilter, input$filter)
     }
     for (f in setdiff(x$activefilter, input$filter)) {
+      if (f == "year") next # why would this even be removed?
       if (!is.null(input[[paste0("slider", f)]])) {
         id <- paste0("slider", f)
         removeUI <- ((input[[id]][1] <= x[[id]]["min"]) &
@@ -235,14 +275,14 @@ modFilter <- function(input, output, session, data, exclude = NULL, showAll = FA
 
 
   observeEvent(data(), {
-    initialize(input, session, data, x, exclude, order, multiple, showAll)
+    initialize(input, session, data, x, exclude, order, multiple, showAll, preselectYear, preselectMinDate)
   })
 
   observe({
     x$out <- selectdata(data(), input, x$activefilter, xdata, xdataExclude)
   })
 
-  observeEvent(input$filter, if (!showAll) updatefilter(input, x))
+  observeEvent(input$filter, if (!showAll) updatefilter(input, x, preselectYear, preselectMinDate))
 
   output$observations <- renderText(paste0(dim(x$out$x)[1], " observations"))
 
