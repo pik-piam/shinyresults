@@ -224,12 +224,25 @@ appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, ...) 
         return(check[1])
       }
       theme <- mip::theme_mip(size = 10)
-      p <- ggplot2::ggplot(repFull$selection()$x) +
-        ggplot2::theme(legend.direction = "vertical") +
-        ggplot2::geom_point(ggplot2::aes_string(y = cset(input$yaxis, repFull$variables()),
-                                                x = cset(input$xaxis, repFull$variables()),
-                                                color = cset(input$color, repFull$variables())), na.rm = TRUE) +
-        theme
+
+      # only make scatter plot of runstatistics if less than 30000 runs are selected
+      if (is.null(repFull$selection()$x)) {
+        p <- ggplot() +
+          annotate("text", x = 1, y = 1, label = "Data not yet loaded...") +
+          theme_void()
+      } else if (nrow(repFull$selection()$x) > 30000) {
+        p <- ggplot() +
+          annotate("text", x = 1, y = 1, label = "Too many data points (>30000)! Please filter data!") +
+          theme_void()
+      } else {
+        p <- ggplot2::ggplot(repFull$selection()$x) +
+          ggplot2::theme(legend.direction = "vertical") +
+          ggplot2::geom_point(ggplot2::aes_string(y = cset(input$yaxis, repFull$variables()),
+                                                  x = cset(input$xaxis, repFull$variables()),
+                                                  color = cset(input$color, repFull$variables())), na.rm = TRUE) +
+          theme
+      }
+
       progress$set(message = "Make it interactive",
                    detail = "This should be quick...",
                    value = 6)

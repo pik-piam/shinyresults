@@ -7,6 +7,9 @@
 ^\.pre-commit-config\.yaml$
 ^workflow$
 ^Makefile$
+^\.lintr$
+^tests/\.lintr$
+^.*CITATION.cff$
+^webservice$
 ^.lintr$
 ^tests/.lintr$
-^.*CITATION.cff$

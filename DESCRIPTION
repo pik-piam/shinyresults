@@ -2,8 +2,8 @@ Type: Package
 Package: shinyresults
 Title: A collection of shiny apps and modules to visualize/handle model
     results
-Version: 0.29.4.9001
-Date: 2023-12-15
+Version: 0.30.0.9001
+Date: 2023-12-19
 Authors@R: c(
     person("Jan Philipp", "Dietrich", , "dietrich@pik-potsdam.de", role = c("aut", "cre")),
     person("Florian", "Humpenoeder", , "humpenoeder@pik-potsdam.de", role = "aut"),
