@@ -132,10 +132,13 @@ modRunSelect <- function(input, output, session, file, resultsfolder,
                detail = "That should be quick...",
                value = 9)
 
+  # preselect current year, and previous year if current month is January, February or March
   preselectYear <- format(as.POSIXct(Sys.time()), "%Y")
   if (format(Sys.time(), "%m") %in% c("1", "2", "3")) {
     preselectYear <- c(as.character(as.integer(preselectYear) - 1), preselectYear)
   }
+
+  # preselect last 3 months
   preselectMinDate <- as.POSIXct(Sys.time()) - 3 * 60 * 60 * 24 * 31
   selection <- callModule(modFilter, "runfilter", data = reactive(data), exclude = ".id", name = "RunSelect",
                           order = "date", preselectYear = preselectYear, preselectMinDate = preselectMinDate)
