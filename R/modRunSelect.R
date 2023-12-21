@@ -3,11 +3,13 @@
 #' Corresponding server logic to \code{\link{modRunSelectUI}} to select modules runs for further analysis
 #'
 #' @param input,output,session Default input, output and session objects coming from shiny
-#' @param file report data. Can be a CSV/MIF file or rds file with a quitte object (saved with saveRDS). file can also be a vector of rds files. NULL by default; in this case the user can upload files directly in the tool
-#' @param resultsfolder folder in which MAgPIE run results are stored. File must come with a overview list called "files"
+#' @param file report data. Can be a CSV/MIF file or rds file with a quitte object (saved with saveRDS).
+#' file can also be a vector of rds files. NULL by default; in this case the user can upload files directly in the tool
+#' @param resultsfolder folder in which MAgPIE run results are stored.
+#' File must come with a overview list called "files"
 #' @param username username to be used to access file and resultsfolder
 #' @param password password to access file and resultsfolder
-#' @param readFilePar read report data files in parallel (faster) (TRUE) or in sequence (FALSE). Current default is FALSE.
+#' @param readFilePar read report data files in parallel (faster) (TRUE) or in sequence (FALSE)
 #' @return a reactive containing a merged data.frame containing results of selected runs
 #' @author Jan Philipp Dietrich
 #' @seealso \code{\link{modFilterUI}}, \code{\link{appModelstats}}
@@ -22,65 +24,75 @@
 #' @importFrom mip shorten_legend
 #' @export
 
-modRunSelect <- function(input, output, session, file, resultsfolder, username=NULL, password=NULL,readFilePar=FALSE) {
-
-  readdata <- function(file,username=NULL, password=NULL,addfilename=FALSE) {
-    if(grepl("https://",file)) {
-      con <- gzcon(curl(file, handle=new_handle(username=username, password=password)))
+modRunSelect <- function(input, output, session, file, resultsfolder,
+                         username = NULL, password = NULL, readFilePar = FALSE) {
+  readdata <- function(file, username = NULL, password = NULL, addfilename = FALSE) {
+    if (grepl("https://", file)) {
+      con <- gzcon(curl(file, handle = new_handle(username = username, password = password)))
       out <- readRDS(con)
       close(con)
     } else {
       out <- readRDS(file)
     }
-    if(addfilename) out$filename <- as.factor(file)
+    if (addfilename) out$filename <- as.factor(file)
 
-    conv_date <- function(x) {
-      tmp <- try(as.POSIXct(x, origin="1970-01-01"), silent=TRUE)
-      if("try-error" %in% class(tmp)) return(x)
-      else return(tmp)
+    convertDate <- function(x) {
+      tmp <- try(as.POSIXct(x, origin = "1970-01-01"), silent = TRUE)
+      if ("try-error" %in% class(tmp)) {
+        return(x)
+      } else {
+        return(tmp)
+      }
     }
 
-    if("date" %in% names(out)){
-      out$date <- conv_date(out$date)
-      if(is.null(out$year))  try(out$year <- format(out$date,"%Y"))
+    if ("date" %in% names(out)) {
+      out$date <- convertDate(out$date)
+      if (is.null(out$year)) try(out$year <- format(out$date, "%Y"))
     }
-    if("revision_date" %in% names(out)) out$revision_date <- conv_date(out$revision_date)
-    if(!is.data.table(out)) out <- as.data.table(out)
-    reorder <- union(intersect("year",names(out)), names(out))
+    if ("revision_date" %in% names(out)) {
+      out$revision_date <- convertDate(out$revision_date)
+    }
+    if (!is.data.table(out)) {
+      out <- as.data.table(out)
+    }
+    reorder <- union(intersect("year", names(out)), names(out))
     return(out[, reorder, with = FALSE])
   }
 
-  readreports <- function(ids, resultsfolder, username=NULL, password=NULL) {
-    files <- paste0(resultsfolder,"/",ids,".rds")
-    withProgress(message = 'Read selected data', value = 0, {
-      if(readFilePar) {
-        no_cores <- detectCores() - 1
-        cl <- makeCluster(no_cores)
+  readreports <- function(ids, resultsfolder, username = NULL, password = NULL) {
+    files <- paste0(resultsfolder, "/", ids, ".rds")
+    withProgress(message = "Read selected data", value = 0, {
+      if (readFilePar) {
+        nCores <- detectCores() - 1
+        cl <- makeCluster(nCores)
         registerDoSNOW(cl)
-        fout <- foreach (file=files,.combine = rbind,.export = c("readdata"),.options.snow = list(progress = incProgress(1/length(files), detail = basename(file)))) %dopar% {
-          readdata(file, username=username, password=password, addfilename = TRUE)
+        fout <- foreach(file = files, .combine = rbind, .export = "readdata",
+                        .options.snow = list(progress = incProgress(1 / length(files),
+                                                                    detail = basename(file)))) %dopar% {
+          readdata(file, username = username, password = password, addfilename = TRUE)
         }
       } else {
         fout <- list()
-        for(file in files) {
-          incProgress(1/(length(files)+1), detail = basename(file))
-          fout[[file]] <- readdata(file, username=username, password=password, addfilename = TRUE)
+        for (file in files) {
+          incProgress(1 / (length(files) + 1), detail = basename(file))
+          fout[[file]] <- readdata(file, username = username, password = password, addfilename = TRUE)
         }
         incProgress(1, detail = "merge data")
         fout <- rbindlist(fout)
-
       }
     })
     if (nlevels(fout$scenario) != nlevels(fout$filename)) {
-      # test two ways to distinguish identical runs. Prefer option2 (read date from file name) but use option1 (reduce file name to distinct components) as fallback
-      option1 <- mip::shorten_legend(gsub("/"," ",levels(fout$filename),fixed=TRUE),identical_only = TRUE)
-      option2 <- suppressWarnings(format(as.POSIXct(as.numeric(file_path_sans_ext(basename(levels(fout$filename))))/100000, origin="1970-01-01")))
+      # test two ways to distinguish identical runs. Prefer option2 (read date from file name)
+      # but use option1 (reduce file name to distinct components) as fallback
+      option1 <- mip::shorten_legend(gsub("/", " ", levels(fout$filename), fixed = TRUE), identical_only = TRUE)
+      basePath <- file_path_sans_ext(basename(levels(fout$filename)))
+      option2 <- suppressWarnings(format(as.POSIXct(as.numeric(basePath) / 100000, origin = "1970-01-01")))
       option2[is.na(option2)] <- option1[is.na(option2)]
       levels(fout$filename) <- option2
       tmpsep <- " #TMPSEPARATOR# "
-      fout$scenario <- as.factor(paste0(fout$scenario,tmpsep,fout$filename))
-      short <- sub(paste0(tmpsep,".*$"),"",levels(fout$scenario))
-      levels(fout$scenario) <- sub(tmpsep," ",levels(fout$scenario))
+      fout$scenario <- as.factor(paste0(fout$scenario, tmpsep, fout$filename))
+      short <- sub(paste0(tmpsep, ".*$"), "", levels(fout$scenario))
+      levels(fout$scenario) <- sub(tmpsep, " ", levels(fout$scenario))
       unique <- (!duplicated(short) & !duplicated(short, fromLast = TRUE))
       levels(fout$scenario)[unique] <- short[unique]
     }
@@ -88,58 +100,67 @@ modRunSelect <- function(input, output, session, file, resultsfolder, username=N
     return(fout)
   }
 
-  readtextfile <- function(file, username=NULL, password=NULL) {
-    if(grepl("https://",file)) {
-      out <- readLines(curl(file, handle=new_handle(username=username, password=password)))
+  readtextfile <- function(file, username = NULL, password = NULL) {
+    if (grepl("https://", file)) {
+      out <- readLines(curl(file, handle = new_handle(username = username, password = password)))
     } else {
       out <- readLines(file)
     }
+    return(out)
   }
-  progress <- Progress$new(session, min=1, max=10)
-  on.exit(progress$close())
-  progress$set(message = 'Read in run overview',
-               detail = 'This may take a while...',
+  progress <- Progress$new(session, min = 1, max = 10)
+  withr::defer(progress$close())
+  progress$set(message = "Read in run overview",
+               detail = "This may take a while...",
                value = 2)
-  data <- readdata(file, username=username, password=password)
-  progress$set(message = 'Check for corresponding model run outputs',
-               detail = 'That should be quick...',
+  data <- readdata(file, username = username, password = password)
+  progress$set(message = "Check for corresponding model run outputs",
+               detail = "That should be quick...",
                value = 7)
-  if(grepl("https://",file)) {
-    ids <- as.numeric(sub("\\.rds$","",readtextfile(paste0(resultsfolder,"/files"), username=username, password=password)))
-    data <- data[(data$.id %in% ids),]
+  if (grepl("https://", file)) {
+    ids <- as.numeric(sub("\\.rds$", "", readtextfile(paste0(resultsfolder, "/files"),
+                                                      username = username, password = password)))
+    data <- data[(data$.id %in% ids), ]
   } else {
-   data <- data[file.exists(paste0(resultsfolder,"/",data$.id,".rds")),]
+    data <- data[file.exists(paste0(resultsfolder, "/", data$.id, ".rds")), ]
   }
-  if(!is.data.table(data)) data <- as.data.table(data)
+  if (!is.data.table(data)) {
+    data <- as.data.table(data)
+  }
 
-  progress$set(message = 'Load filter module',
-               detail = 'That should be quick...',
+  progress$set(message = "Load filter module",
+               detail = "That should be quick...",
                value = 9)
 
+  # preselect current year, and previous year if current month is January, February or March
   preselectYear <- format(as.POSIXct(Sys.time()), "%Y")
-  if (format(Sys.time(), "%m") %in% c("1", "2", "3")) preselectYear <- c(as.character(as.integer(preselectYear) - 1), preselectYear)
-  preselectMinDate <- as.POSIXct(Sys.time()) - 3*60*60*24*31
+  if (format(Sys.time(), "%m") %in% c("1", "2", "3")) {
+    preselectYear <- c(as.character(as.integer(preselectYear) - 1), preselectYear)
+  }
+
+  # preselect last 3 months
+  preselectMinDate <- as.POSIXct(Sys.time()) - 3 * 60 * 60 * 24 * 31
   selection <- callModule(modFilter, "runfilter", data = reactive(data), exclude = ".id", name = "RunSelect",
-                          order = c("date"), preselectYear = preselectYear, preselectMinDate = preselectMinDate)
+                          order = "date", preselectYear = preselectYear, preselectMinDate = preselectMinDate)
 
-  x <- reactiveValues(out=NULL, ready=FALSE)
+  x <- reactiveValues(out = NULL, ready = FALSE)
 
-  fullReport <- reactive(readreports(selection()$x[[".id"]], resultsfolder, username=username, password=password))
+  fullReport <- reactive(readreports(selection()$x[[".id"]], resultsfolder, username = username, password = password))
 
   observeEvent(input$load, {
     start <- Sys.time()
     message(".:|RunSelect|:.  Read data..", appendLF = FALSE)
     x$out <- fullReport()
     x$ready <- TRUE
-    message("done! (",round(as.numeric(Sys.time()-start,units="secs"),2),"s)")
+    message("done! (", round(as.numeric(Sys.time() - start, units = "secs"), 2), "s)")
   })
   out <- reactiveValues()
   out$report <- reactive(x$out)
   out$ready <- reactive(x$ready)
   out$variables <- reactive(names(selection()$x)[-1])
   out$selection <- selection
-  progress$set(message = 'Run selection ready',
-               detail = 'Move on to the next step...',
+  progress$set(message = "Run selection ready",
+               detail = "Move on to the next step...",
                value = 10)
   return(out)
 }

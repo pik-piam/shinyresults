@@ -25,7 +25,8 @@
 #' @importFrom data.table uniqueN
 #' @export
 
-modFilter <- function(input, output, session, data, exclude = NULL, showAll = FALSE,
+modFilter <- function(input, # nolint: cyclocomp_linter.
+                      output, session, data, exclude = NULL, showAll = FALSE,
                       multiple = NULL, xdata = NULL, xdataExclude = NULL, order = NULL,
                       name = NULL, preselectYear = NULL, preselectMinDate = NULL) {
 
@@ -49,7 +50,7 @@ modFilter <- function(input, output, session, data, exclude = NULL, showAll = FA
       if (!is.null(input[[slf]])) {
         slmax <- max(data[[f]], na.rm = TRUE)
         slmin <- min(data[[f]], na.rm = TRUE)
-        if (x[[slf]]["max"] != slmax | x[[slf]]["min"] != slmin) {
+        if (x[[slf]]["max"] != slmax || x[[slf]]["min"] != slmin) {
           updateSliderInput(session, slf,
             min = slmin - 60, max = slmax + 60,
             value = input[[slf]]
@@ -114,9 +115,9 @@ modFilter <- function(input, output, session, data, exclude = NULL, showAll = FA
       id <- paste0("slider", filter)
       x[[id]] <- c(min = min, max = max)
       if (filter == "date" && !is.null(preselectMinDate)) {
-        value = c(max(preselectMinDate, min(data, na.rm = TRUE) - 60), max(data, na.rm = TRUE) + 60)
+        value <- c(max(preselectMinDate, min(data, na.rm = TRUE) - 60), max(data, na.rm = TRUE) + 60)
       } else {
-        value = c(min(data, na.rm = TRUE) - 60, max(data, na.rm = TRUE) + 60)
+        value <- c(min(data, na.rm = TRUE) - 60, max(data, na.rm = TRUE) + 60)
       }
       return(tags$div(
         id = session$ns(paste0("div", filter)),
@@ -185,16 +186,14 @@ modFilter <- function(input, output, session, data, exclude = NULL, showAll = FA
         }
         return(any(x != x[1], na.rm = TRUE))
       }
-      multipleChoices <- as.vector(sapply(x$data, multipleChoices))
+      multipleChoices <- as.vector(sapply(x$data, multipleChoices)) # nolint: undesirable_function_linter.
       x$filter <- names(x$data)[!(names(x$data) %in% exclude) & multipleChoices]
 
       # order the filter
       if (!is.null(order)) x$filter <- c(intersect(order, x$filter), setdiff(x$filter, order))
 
       # get filter class to be used as input to selectUI
-      x$filterclass <- sapply(x$data, function(x) {
-        return(class(x)[1])
-      })
+      x$filterclass <- sapply(x$data, function(x) class(x)[1]) # nolint: undesirable_function_linter.
 
       # multiple choices allowed?
       x$filtermultiple <- multiple
@@ -260,7 +259,7 @@ modFilter <- function(input, output, session, data, exclude = NULL, showAll = FA
       if (!is.null(input[[paste0("slider", f)]])) {
         id <- paste0("slider", f)
         removeUI <- ((input[[id]][1] <= x[[id]]["min"]) &
-          (input[[id]][2] >= x[[id]]["max"]))
+                       (input[[id]][2] >= x[[id]]["max"]))
       } else {
         removeUI <- ifelse(is.null(input[[paste0("select", f)]]), TRUE, FALSE)
       }

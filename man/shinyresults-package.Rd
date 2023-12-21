@@ -23,6 +23,7 @@ Useful links:
 Authors:
 \itemize{
   \item Florian Humpenoeder \email{humpenoeder@pik-potsdam.de}
+  \item Pascal Sauer \email{pascal.sauer@pik-potsdam.de}
 }
 
 }
