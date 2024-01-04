@@ -134,7 +134,7 @@ modRunSelect <- function(input, output, session, file, resultsfolder,
 
   # preselect current year, and previous year if current month is January, February or March
   preselectYear <- format(as.POSIXct(Sys.time()), "%Y")
-  if (format(Sys.time(), "%m") %in% c("1", "2", "3")) {
+  if (format(Sys.time(), "%m") %in% c("01", "02", "03")) {
     preselectYear <- c(as.character(as.integer(preselectYear) - 1), preselectYear)
   }
 
