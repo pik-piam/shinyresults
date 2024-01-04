@@ -4,8 +4,8 @@ type: software
 title: |-
   shinyresults: A collection of shiny apps and modules to visualize/handle model
       results
-version: 0.31.0
-date-released: '2023-12-21'
+version: 0.31.1
+date-released: '2024-01-04'
 abstract: A collection of tools which allow to manipulate and analyze code.
 authors:
 - family-names: Dietrich
