@@ -13,9 +13,9 @@
 
 
 appModelstats <- function(files=c("https://www.pik-potsdam.de/rd3mod/magpie.rds","https://www.pik-potsdam.de/rd3mod/remind.rds"), resultsfolder=NULL) {
-  
+
   names(files) <- basename(files)
-  
+
   ui <- fluidPage(
     tags$div(id="title", titlePanel(paste0("Model run statistics from ",basename(files[1])))),
     tags$div(id="titleend"),
@@ -38,7 +38,7 @@ appModelstats <- function(files=c("https://www.pik-potsdam.de/rd3mod/magpie.rds"
       mainPanel(plotOutput("stats"))
     )
   )
-  
+
   server <- function(input, output, session) {
     readdata <- function(file) {
       if(grepl("https://",file)) {
@@ -52,13 +52,13 @@ appModelstats <- function(files=c("https://www.pik-potsdam.de/rd3mod/magpie.rds"
       if(!is.null(out$revision_date)) out$revision_date <- as.POSIXct(out$revision_date, origin="1970-01-01")
       return(out)
     }
-    
+
     x <- reactiveValues()
-    
+
     observeEvent(input$file, {
       x$data <- readdata(input$file)
       if(!is.null(resultsfolder)) {
-        ids <- as.numeric(sub("\\.rds$","",readLines(url(paste0(resultsfolder,"/files")))))
+        ids <- as.numeric(sub("\\.rds$","",readLines(url(paste0(resultsfolder,"/fileListForShinyresults")))))
         x$data$with_results <- (x$data$.id %in% ids)
       }
       removeUI(selector = "#title")
@@ -72,9 +72,9 @@ appModelstats <- function(files=c("https://www.pik-potsdam.de/rd3mod/magpie.rds"
       updateSelectInput(session, "yaxis",  choices=x$variables, selected = "user")
       updateSelectInput(session, "color",  choices=x$variables, selected = "user")
     })
-    
+
     selection <- callModule(modFilter,"runfilter",data=reactive(x$data),exclude=".id")
-    
+
     output$stats <- renderPlot({
       cset <- function(i,check) {
         if(i %in% check) return(i)
@@ -87,7 +87,7 @@ appModelstats <- function(files=c("https://www.pik-potsdam.de/rd3mod/magpie.rds"
       } else {
         theme <- mip::theme_mip(size=14)
       }
-      
+
       ggplot2::ggplot(selection()$x) + ggplot2::theme(legend.direction="vertical") +
         ggplot2::geom_point(ggplot2::aes_string(y=cset(input$yaxis,x$variables),
                                                 x=cset(input$xaxis,x$variables),
@@ -95,6 +95,6 @@ appModelstats <- function(files=c("https://www.pik-potsdam.de/rd3mod/magpie.rds"
         theme
     }, height=700)
   }
-  
+
   shinyApp(ui=ui, server=server)
 }

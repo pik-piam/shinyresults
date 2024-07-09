@@ -118,7 +118,7 @@ modRunSelect <- function(input, output, session, file, resultsfolder,
                detail = "That should be quick...",
                value = 7)
   if (grepl("https://", file)) {
-    ids <- as.numeric(sub("\\.rds$", "", readtextfile(paste0(resultsfolder, "/files"),
+    ids <- as.numeric(sub("\\.rds$", "", readtextfile(paste0(resultsfolder, "/fileListForShinyresults"),
                                                       username = username, password = password)))
     data <- data[(data$.id %in% ids), ]
   } else {
