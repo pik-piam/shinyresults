@@ -157,7 +157,7 @@ appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, ...) 
       }
 
       valFull <- valFull[!is.na(valFull$value), ]
-      levels(valFull$region) <- sub("World", "GLO", levels(valFull$region))
+      levels(valFull$region) <- sub("GLO", "World", levels(valFull$region))
       valFull <- valFull[valFull$period > 1950, ] #show validation data only for years > 1950
     }
 
