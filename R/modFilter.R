@@ -128,6 +128,7 @@ modFilter <- function(input, # nolint: cyclocomp_linter.
           max = max,
           value = value,
           ticks = FALSE,
+          step = 6*3600,
           timeFormat = "%F %H:%M"
         )
       ))
