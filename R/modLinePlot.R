@@ -58,6 +58,7 @@ modLinePlot <- function(input, output, session, report, validation) {
                              size   = 10,
                              ylab   = as.character(selection()$x$unit[1]),
                              title  = as.character(selection()$x$variable[1]),
+                             legend.pos = ifelse(input$legend_right, "right", "bottom"),
                              scales = ifelse(input$free_y,"free_y","fixed"),
                              ylim = switch(input$auto_y + 1, 0, NULL)
                              ))
@@ -101,6 +102,6 @@ modLinePlot <- function(input, output, session, report, validation) {
   )
   
   return(renderCachedPlot(lineplot(), res = 120,
-                          cacheKeyExpr = { list(selection(), input$show_hist, input$show_proj, input$free_y, input$auto_y) }))
+                          cacheKeyExpr = { list(selection(), input$show_hist, input$show_proj, input$free_y, input$auto_y, input$legend_right) }))
   
 }
