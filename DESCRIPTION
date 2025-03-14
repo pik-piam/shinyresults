@@ -24,7 +24,7 @@ Imports:
     foreach,
     ggplot2,
     magclass,
-    mip,
+    mip (>= 0.154.0),
     parallel,
     plotly,
     reshape2,
