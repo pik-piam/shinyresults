@@ -1,7 +1,7 @@
 # A collection of shiny apps and modules to visualize/handle model
     results
 
-R package **shinyresults**, version **0.32.0**
+R package **shinyresults**, version **0.33.0**
 
 [![CRAN status](https://www.r-pkg.org/badges/version/shinyresults)](https://cran.r-project.org/package=shinyresults) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1478922.svg)](https://doi.org/10.5281/zenodo.1478922) [![R build status](https://github.com/pik-piam/shinyresults/workflows/check/badge.svg)](https://github.com/pik-piam/shinyresults/actions) [![codecov](https://codecov.io/gh/pik-piam/shinyresults/branch/master/graph/badge.svg)](https://app.codecov.io/gh/pik-piam/shinyresults) [![r-universe](https://pik-piam.r-universe.dev/badges/shinyresults)](https://pik-piam.r-universe.dev/builds)
 
@@ -40,7 +40,7 @@ In case of questions / problems please contact Jan Philipp Dietrich <dietrich@pi
 
 To cite package **shinyresults** in publications use:
 
-Dietrich J, Humpenoeder F, Sauer P (2025). "shinyresults: A collection of shiny apps and modules to visualize/handle model results." doi:10.5281/zenodo.1478922 <https://doi.org/10.5281/zenodo.1478922>, Version: 0.32.0, <https://github.com/pik-piam/shinyresults>.
+Dietrich J, Humpenoeder F, Sauer P (2025). "shinyresults: A collection of shiny apps and modules to visualize/handle model results." doi:10.5281/zenodo.1478922 <https://doi.org/10.5281/zenodo.1478922>, Version: 0.33.0, <https://github.com/pik-piam/shinyresults>.
 
 A BibTeX entry for LaTeX users is
 
@@ -50,9 +50,9 @@ A BibTeX entry for LaTeX users is
     results},
   author = {Jan Philipp Dietrich and Florian Humpenoeder and Pascal Sauer},
   doi = {10.5281/zenodo.1478922},
-  date = {2025-03-07},
+  date = {2025-03-25},
   year = {2025},
   url = {https://github.com/pik-piam/shinyresults},
-  note = {Version: 0.32.0},
+  note = {Version: 0.33.0},
 }
 ```
