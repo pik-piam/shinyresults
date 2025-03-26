@@ -55,9 +55,9 @@ modAreaPlot <- function(input, output, session, report) {
           annotate("text", x=1, y=1, label= "Too many data points (>5000)! Please filter data!") +
           theme_void()
       } else {
-        p <- suppressMessages(sanitizeAreaPlot(mipArea(x = selection()$x, 
-                                                       transpose = input$transpose_grid) 
-                                               + mip::theme_mip(size=10)))
+        p <- suppressMessages(mipArea(x = selection()$x,
+                                      transpose = input$transpose_grid)
+                              + mip::theme_mip(size=10))
       }
     } else p <- NULL
     message("done! (",round(as.numeric(Sys.time()-start,units="secs"),2),"s)")
@@ -100,7 +100,7 @@ modAreaPlot <- function(input, output, session, report) {
   )
   
   return(renderPlotly({
-    ggplotly(areaplot())}))
+    sanitizeAreaPlot(areaplot())}))
 
   # return(renderCachedPlot(areaplot(), res = 120,
   #                         cacheKeyExpr = { list(selection(), input$transpose_grid, input$plus_size) }))
