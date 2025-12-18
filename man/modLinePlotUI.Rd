@@ -4,10 +4,12 @@
 \alias{modLinePlotUI}
 \title{modLinePlot Module}
 \usage{
-modLinePlotUI(id)
+modLinePlotUI(id, presets = NULL)
 }
 \arguments{
 \item{id}{id of the filter}
+
+\item{presets}{Optional named list of presets from variable configuration for quick variable loading}
 }
 \description{
 Shiny module which works together with \code{\link{modLinePlot}} to produce a line plot tab

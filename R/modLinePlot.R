@@ -8,11 +8,19 @@
 #' @author Florian Humpenoeder, Jan Philipp Dietrich
 #' @seealso \code{\link{modLinePlotUI}}, \code{\link{appResults}}
 #' @importFrom ggplot2 ggplot theme_void annotate
-#' @importFrom shiny renderCachedPlot
+#' @importFrom shiny renderCachedPlot observeEvent updateSelectInput
 #' @export
 
 modLinePlot <- function(input, output, session, report, validation) {
-  
+
+  # Quick variable selection handler
+  observeEvent(input$quick_select, {
+    if (!is.null(input$quick_select) && input$quick_select != "") {
+      updateSelectInput(session, "runfilter-selectvariable", selected = input$quick_select)
+      updateSelectInput(session, "quick_select", selected = "")
+    }
+  }, ignoreInit = TRUE)
+
   reduceVariables <- function(x) {
     if(!is.null(levels(x$variable))) levels(x$variable) <- gsub("\\|\\++\\|","|",levels(x$variable))
     return(x)

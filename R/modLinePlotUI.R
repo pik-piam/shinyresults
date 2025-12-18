@@ -3,13 +3,32 @@
 #' Shiny module which works together with \code{\link{modLinePlot}} to produce a line plot tab
 #'
 #' @param id id of the filter
+#' @param presets Optional list of presets for quick variable selection
 #' @author Florian Humpenoeder, Jan Philipp Dietrich
 #' @seealso \code{\link{modLinePlot}}, \code{\link{appResults}}
 #' @export
 
-modLinePlotUI <- function(id) {
+modLinePlotUI <- function(id, presets = NULL) {
   ns <- NS(id)
+
+  # Build quick select dropdown from presets
+  quickSelectUI <- NULL
+  if (!is.null(presets) && length(presets) > 0) {
+    allVars <- unlist(lapply(presets, function(p) {
+      sapply(p$variables, function(v) v$variable)
+    }))
+    if (length(allVars) > 0) {
+      quickSelectUI <- tagList(
+        selectInput(ns("quick_select"), NULL,
+                    choices = c("Quick Select Variable..." = "", stats::setNames(allVars, allVars)),
+                    selected = ""),
+        tags$hr()
+      )
+    }
+  }
+
   tags$div(id=ns("filterbox"),
+    quickSelectUI,
     modFilterUI(ns("runfilter")),
     tags$hr(),
     fluidRow(

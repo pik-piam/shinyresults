@@ -17,7 +17,8 @@ URL: https://github.com/pik-piam/shinyresults,
 BugReports: https://github.com/pik-piam/shinyresults/issues
 Depends: 
     shiny
-Imports: 
+Imports:
+    base64enc,
     curl,
     data.table,
     doSNOW,
@@ -30,11 +31,12 @@ Imports:
     reshape2,
     snow,
     trafficlight,
-    withr
+    withr,
+    yaml
 Suggests:
     covr,
     lucode2,
     quitte (>= 0.3072)
 Encoding: UTF-8
 LazyData: no
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3
