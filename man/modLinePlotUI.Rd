@@ -9,7 +9,7 @@ modLinePlotUI(id, presets = NULL)
 \arguments{
 \item{id}{id of the filter}
 
-\item{presets}{Optional named list of presets from variable configuration for quick variable loading}
+\item{presets}{Optional list of presets for quick variable selection}
 }
 \description{
 Shiny module which works together with \code{\link{modLinePlot}} to produce a line plot tab

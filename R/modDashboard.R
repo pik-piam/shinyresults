@@ -1,3 +1,6 @@
+# Declare global variables to avoid R CMD check NOTEs (used in ggplot2 aes())
+utils::globalVariables(c("period", "label", "value", "scenario_clean", "min", "max", "mean"))
+
 #' modDashboard Server Module
 #'
 #' Shiny module which works together with \code{\link{modDashboardUI}} to produce a dashboard

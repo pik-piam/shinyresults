@@ -10,3 +10,4 @@
 ^.lintr$
 ^tests/.lintr$
 ^.*CITATION.cff$
+^\.claude$

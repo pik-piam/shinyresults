@@ -23,6 +23,7 @@
 #' @importFrom doSNOW registerDoSNOW
 #' @importFrom foreach foreach %dopar%
 #' @importFrom mip shorten_legend
+#' @importFrom utils head
 #' @export
 
 modRunSelect <- function(input, output, session, file, resultsfolder,

@@ -4,12 +4,10 @@
 \alias{modAreaPlotUI}
 \title{modAreaPlot Module}
 \usage{
-modAreaPlotUI(id, presets = NULL)
+modAreaPlotUI(id)
 }
 \arguments{
 \item{id}{id of the filter}
-
-\item{presets}{Optional named list of presets from variable configuration for quick variable loading}
 }
 \description{
 Shiny module which works together with \code{\link{modAreaPlot}} to produce an area plot tab

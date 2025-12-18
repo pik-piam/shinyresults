@@ -5,7 +5,7 @@
 #' @param x a vector of variable names
 #' @return a data frame with variables and corresponding groups as columns. 
 #' @author Jan Philipp Dietrich
-#' @seealso \code{\link{plotstyle.add}}
+#' @seealso \code{\link[mip]{plotstyle.add}}
 #' @importFrom data.table data.table
 #' @examples
 #' x <- c("a|+|1|+|aa","a|+|2|abc","a|+|1|+|bb","a|+|1|+|cc","a|+|3|+|aa","a|+|3|+|bb","b|2")

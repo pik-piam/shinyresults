@@ -36,7 +36,7 @@
 #' checkboxInput checkboxGroupInput numericInput textInput downloadButton dataTableOutput h2 verbatimTextOutput
 #' shinyApp renderPlot plotOutput renderUI HTML nearPoints updateCheckboxInput
 #' updateSliderInput hideTab runApp Progress bookmarkButton setBookmarkExclude onBookmark onRestore
-#' @importFrom utils write.csv
+#' @importFrom utils write.csv head
 #' @importFrom data.table fread setcolorder as.data.table data.table setnames
 #' @importFrom trafficlight trafficlight
 #' @importFrom magclass as.magpie

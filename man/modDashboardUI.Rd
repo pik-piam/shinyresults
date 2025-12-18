@@ -9,7 +9,7 @@ modDashboardUI(id, presets = NULL)
 \arguments{
 \item{id}{id of the module}
 
-\item{presets}{Named list of presets from variable configuration}
+\item{presets}{Named list of presets from variable configuration (not used, kept for compatibility)}
 }
 \description{
 Shiny module which works together with \code{\link{modDashboard}} to produce a dashboard
