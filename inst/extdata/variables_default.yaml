@@ -42,13 +42,13 @@ presets:
 
   food demand:
     name: "Food Demand"
-    description: "Crop and livestock demand"
+    description: "Calorie Supply"
     variables:
-      - variable: "Nutrition|Calorie Supply"
-        plot_type: "line"
       - variable: "Nutrition|Calorie Supply|+|Crops"
         plot_type: "line"
       - variable: "Nutrition|Calorie Supply|+|Livestock products"
+        plot_type: "line"
+      - variable: "Nutrition|Calorie Supply|+|Secondary products"
         plot_type: "line"
 
   agricultural production:
@@ -59,10 +59,21 @@ presets:
         plot_type: "line"
       - variable: "Production|+|Livestock products"
         plot_type: "line"
-      - variable: "Production|+|Bioenergy crops"
+      - variable: "Production|+|Secondary products"
         plot_type: "line"
 
-  agricultural productivity:
+  bioenergy:
+    name: "2nd gen Bioenergy"
+    description: "2nd gen Bioenergy"
+    variables:
+      - variable: "Production|Bioenergy|2nd generation|++|Bioenergy crops"
+        plot_type: "line"
+      - variable: "Productivity|Yield|Bioenergy crops"
+        plot_type: "line"
+      - variable: "Prices|Bioenergy"
+        plot_type: "line"
+
+  productivity:
     name: "Productivity & Yields"
     description: "TAU and crop yields"
     variables:
@@ -70,7 +81,7 @@ presets:
         plot_type: "line"
       - variable: "Productivity|Yield|Crops|Cereals"
         plot_type: "line"
-      - variable: "Productivity|Yield|Bioenergy crops"
+      - variable: "Productivity|Yield|Crops|Sugar crops"
         plot_type: "line"
 
   prices:
@@ -79,9 +90,9 @@ presets:
     variables:
       - variable: "SDG|SDG02|Food expenditure share"
         plot_type: "line"
-      - variable: "SDG|SDG02|Agricultural primary product expenditure share"
+      - variable: "Prices|Index2020|Agriculture|Food products"
         plot_type: "line"
-      - variable: "Prices|Bioenergy"
+      - variable: "Prices|Index2020|Agriculture|Producer|All products"
         plot_type: "line"
 
   environment:
@@ -90,7 +101,7 @@ presets:
     variables:
       - variable: "Resources|Water|Withdrawal|Agriculture"
         plot_type: "line"
-      - variable: "SDG|SDG06|Nitrogen surplus on cropland"
+      - variable: "Resources|Nitrogen|Pollution|Surplus"
         plot_type: "line"
       - variable: "Biodiversity|BII"
         plot_type: "line"
