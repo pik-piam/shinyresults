@@ -21,6 +21,11 @@
 #'            username - username to access "file" and "resultsfolder".
 #'            password - password to access "file" and "resultsfolder".
 #' @param readFilePar read report data files in parallel (faster) (TRUE) or in sequence (FALSE)
+#' @param variableConfig Path to a YAML configuration file with variable presets, or NULL to use
+#'                       default config. The config defines presets for the Dashboard tab and
+#'                       quick-load options in plot tabs. See \code{\link{loadVariableConfig}}.
+#' @param port Port number for the Shiny app (default: 3838). Using a fixed port allows
+#'             consistent URLs for bookmarking.
 #' @param ... additional information to overwrite one of the settings from the cfg directly:
 #'            file, resultsfolder, valfile, username or password.
 #' @author Florian Humpenoeder, Jan Philipp Dietrich, Lavinia Baumstark, Pascal Sauer
@@ -30,8 +35,8 @@
 #' fileInput tags selectInput mainPanel tabsetPanel wellPanel fluidRow column radioButtons conditionalPanel
 #' checkboxInput checkboxGroupInput numericInput textInput downloadButton dataTableOutput h2 verbatimTextOutput
 #' shinyApp renderPlot plotOutput renderUI HTML nearPoints updateCheckboxInput
-#' updateSliderInput hideTab runApp Progress
-#' @importFrom utils write.csv
+#' updateSliderInput hideTab runApp Progress bookmarkButton setBookmarkExclude onBookmark onRestore
+#' @importFrom utils write.csv head
 #' @importFrom data.table fread setcolorder as.data.table data.table setnames
 #' @importFrom trafficlight trafficlight
 #' @importFrom magclass as.magpie
@@ -40,7 +45,7 @@
 #' @importFrom ggplot2 ggsave
 #' @importFrom plotly renderPlotly ggplotly plotlyOutput
 #' @export
-appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, ...) {
+appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, variableConfig = NULL, port = 3838, ...) {
   # If config for only one model is provided by getOption("appResults") use this one.
   # If information for more models exists the user can choose the model.
   if (length(cfg) == 1) {
@@ -85,6 +90,9 @@ appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, ...) 
     password <- cfgModel$password
   }
 
+  # Load variable configuration for presets and dashboard
+ varConfig <- loadVariableConfig(variableConfig)
+
   if (grepl("https://", file)) {
     tmp <- try(curl(file, "r", new_handle(username = username, password = password)))
     if ("try-error" %in% class(tmp)) {
@@ -93,9 +101,12 @@ appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, ...) 
   }
 
   #client-sided function
-  ui <- fluidPage(div(style = "position:absolute;right:1em;",
-                      actionButton("LineButton", label = "Add LinePlot"),
-                      actionButton("AreaButton", label = "Add AreaPlot")),
+  ui <- function(request) {
+    fluidPage(
+      div(style = "position:absolute;right:1em;",
+          actionButton("LineButton", label = "Add LinePlot"),
+          actionButton("AreaButton", label = "Add AreaPlot"),
+          bookmarkButton(label = "Share/Save State")),
                   tabsetPanel(id = "append_tab", type = "tabs",
                               tabPanel("Select Data",
                                        sidebarLayout(sidebarPanel(tags$div(id = "navigation",
@@ -114,20 +125,83 @@ appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, ...) 
                                                                            modRunSelectUI("select"))),
                                                      mainPanel(plotlyOutput("stats",
                                                                             height = "600px", width = "auto")))),
+                              tabPanel("Dashboard",
+                                       modDashboardUI("dashboard", presets = varConfig$presets)),
                               tabPanel("LinePlot1",
-                                       sidebarLayout(sidebarPanel(modLinePlotUI("LinePlot1")),
+                                       sidebarLayout(sidebarPanel(modLinePlotUI("LinePlot1", presets = varConfig$presets)),
                                                      mainPanel(plotOutput("LinePlot1",
                                                                           height = "800px", width = "auto")))),
                               tabPanel("AreaPlot1",
                                        sidebarLayout(sidebarPanel(modAreaPlotUI("AreaPlot1")),
                                                      mainPanel(plotlyOutput("AreaPlot1",
                                                                             height = "800px", width = "auto"))))))
+  }
 
   #limit for file upload set to 300 MB
   withr::local_options(shiny.maxRequestSize = 300 * 1024^2)
 
   server <- function(input, output, session) {
     message("server called")
+
+    # Set up bookmark exclusions (exclude large reactive outputs and filter inputs)
+    # Exclude filter-related inputs to prevent Shiny's auto-restore from interfering with our ID-based restore
+    setBookmarkExclude(c("stats", "LinePlot1", "AreaPlot1",
+                         "select-load", "select-runfilter-scenario", "select-runfilter-model",
+                         "select-runfilter-user", "select-runfilter-year", "select-runfilter-date"))
+
+    # Reactive to hold restored run IDs
+    restoredRunIds <- reactiveVal(NULL)
+
+    # Bookmark handler - save state including loaded run IDs
+    onBookmark(function(state) {
+      state$values$activeTab <- input$append_tab
+      # Save dashboard filter selections
+      state$values$dashboardRegion <- input[["dashboard-region_filter"]]
+      state$values$dashboardScenarios <- input[["dashboard-scenario_filter"]]
+      # Save loaded run IDs
+      ids <- repFull$loadedIds()
+      if (!is.null(ids) && length(ids) > 0) {
+        state$values$runIds <- compressIds(ids)
+        message("Bookmarking: saving ", length(ids), " run IDs: ", paste(head(ids, 3), collapse=", "),
+                if(length(ids) > 3) "..." else "")
+      } else {
+        message("Bookmarking: no run IDs to save")
+      }
+    })
+
+    # Reactive values for restored dashboard state
+    restoredDashboardState <- reactiveValues(region = NULL, scenarios = NULL)
+
+    # Restore handler - restore state from bookmark
+    onRestore(function(state) {
+      message("Restoring bookmarked state")
+      # Restore run IDs
+      if (!is.null(state$values$runIds) && state$values$runIds != "") {
+        ids <- decompressIds(state$values$runIds)
+        message("Restoring ", length(ids), " run IDs: ", paste(head(ids, 3), collapse=", "),
+                if(length(ids) > 3) "..." else "")
+        restoredRunIds(ids)
+      } else {
+        message("No run IDs in bookmark to restore")
+      }
+      # Store dashboard filter state for later restoration
+      restoredDashboardState$region <- state$values$dashboardRegion
+      restoredDashboardState$scenarios <- state$values$dashboardScenarios
+    })
+
+    # Restore dashboard filters after data is loaded
+    observe({
+      req(repFull$ready())
+      if (!is.null(restoredDashboardState$region)) {
+        updateSelectInput(session, "dashboard-region_filter", selected = restoredDashboardState$region)
+        restoredDashboardState$region <- NULL
+      }
+      if (!is.null(restoredDashboardState$scenarios)) {
+        updateSelectInput(session, "dashboard-scenario_filter", selected = restoredDashboardState$scenarios)
+        restoredDashboardState$scenarios <- NULL
+      }
+    })
+
     val <- reactiveValues()
     valFull <- NULL
 
@@ -164,21 +238,25 @@ appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, ...) 
     counter <- reactiveValues(LinePlot = 1, AreaPlot = 1)
 
     repFull <- callModule(modRunSelect, "select", file = file, resultsfolder = resultsfolder,
-                          username = username, password = password, readFilePar = readFilePar)
+                          username = username, password = password, readFilePar = readFilePar,
+                          restoreIds = restoredRunIds)
+
+    # Initialize Dashboard module
+    callModule(modDashboard, "dashboard", report = repFull, validation = reactive(valFull), config = varConfig)
 
     addtab <- function(type = "Line", counter, plot = plotOutput) {
-      if (type == "Line") {
-        ui <- modLinePlotUI
-      } else if (type == "Area") {
-        ui <- modAreaPlotUI
-      } else {
-        stop("Unknown type ", type, "!")
-      }
       tabname <- paste0(type, "Plot", counter)
       if (counter > 1) {
+        if (type == "Line") {
+          uiElement <- modLinePlotUI(tabname, presets = varConfig$presets)
+        } else if (type == "Area") {
+          uiElement <- modAreaPlotUI(tabname)
+        } else {
+          stop("Unknown type ", type, "!")
+        }
         insertTab(inputId = "append_tab",
                   tabPanel(tabname,
-                           sidebarLayout(sidebarPanel(ui(tabname)),
+                           sidebarLayout(sidebarPanel(uiElement),
                                          mainPanel(plot(tabname, height = "800px", width = "auto")))),
                   target = paste0(type, "Plot", counter - 1),
                   position = "after")
@@ -237,12 +315,33 @@ appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, ...) 
           annotate("text", x = 1, y = 1, label = "Too many data points (>30000)! Please filter data!") +
           theme_void()
       } else {
-        p <- ggplot2::ggplot(repFull$selection()$x) +
+        # Prepare data - convert runtime from hours to minutes
+        plotData <- as.data.frame(repFull$selection()$x)
+        if ("runtime" %in% names(plotData)) {
+          plotData$runtime <- plotData$runtime * 60  # Convert hours to minutes
+        }
+
+        # Get axis selections
+        xVar <- cset(input$xaxis, repFull$variables())
+        yVar <- cset(input$yaxis, repFull$variables())
+        colorVar <- cset(input$color, repFull$variables())
+
+        p <- ggplot2::ggplot(plotData) +
           ggplot2::theme(legend.direction = "vertical") +
-          ggplot2::geom_point(ggplot2::aes_string(y = cset(input$yaxis, repFull$variables()),
-                                                  x = cset(input$xaxis, repFull$variables()),
-                                                  color = cset(input$color, repFull$variables())), na.rm = TRUE) +
+          ggplot2::geom_point(ggplot2::aes_string(y = yVar, x = xVar, color = colorVar), na.rm = TRUE) +
           theme
+
+        # Add informative axis labels
+        axisLabels <- list(
+          runtime = "Runtime (minutes)",
+          date = "Date",
+          user = "User",
+          scenario = "Scenario",
+          model = "Model"
+        )
+        yLabel <- if (yVar %in% names(axisLabels)) axisLabels[[yVar]] else yVar
+        xLabel <- if (xVar %in% names(axisLabels)) axisLabels[[xVar]] else xVar
+        p <- p + ggplot2::labs(x = xLabel, y = yLabel)
       }
 
       progress$set(message = "Make it interactive",
@@ -257,5 +356,5 @@ appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, ...) 
     })
   }
 
-  runApp(shinyApp(ui = ui, server = server), launch.browser = TRUE)
+  runApp(shinyApp(ui = ui, server = server, enableBookmarking = "url"), launch.browser = TRUE, port = port)
 }

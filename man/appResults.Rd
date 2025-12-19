@@ -4,7 +4,13 @@
 \alias{appResults}
 \title{appResults}
 \usage{
-appResults(cfg = getOption("appResults"), readFilePar = FALSE, ...)
+appResults(
+  cfg = getOption("appResults"),
+  readFilePar = FALSE,
+  variableConfig = NULL,
+  port = 3838,
+  ...
+)
 }
 \arguments{
 \item{cfg}{config-file containing information about one or more models on the items listed below.
@@ -28,6 +34,13 @@ appResults(cfg = getOption("appResults"), readFilePar = FALSE, ...)
            password - password to access "file" and "resultsfolder".}
 
 \item{readFilePar}{read report data files in parallel (faster) (TRUE) or in sequence (FALSE)}
+
+\item{variableConfig}{Path to a YAML configuration file with variable presets, or NULL to use
+default config. The config defines presets for the Dashboard tab and
+quick-load options in plot tabs. See \code{\link{loadVariableConfig}}.}
+
+\item{port}{Port number for the Shiny app (default: 3838). Using a fixed port allows
+consistent URLs for bookmarking.}
 
 \item{...}{additional information to overwrite one of the settings from the cfg directly:
 file, resultsfolder, valfile, username or password.}

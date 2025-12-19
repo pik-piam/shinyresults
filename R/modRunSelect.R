@@ -10,10 +10,11 @@
 #' @param username username to be used to access file and resultsfolder
 #' @param password password to access file and resultsfolder
 #' @param readFilePar read report data files in parallel (faster) (TRUE) or in sequence (FALSE)
+#' @param restoreIds reactive containing run IDs to restore from a bookmarked URL (optional)
 #' @return a reactive containing a merged data.frame containing results of selected runs
 #' @author Jan Philipp Dietrich
 #' @seealso \code{\link{modFilterUI}}, \code{\link{appModelstats}}
-#' @importFrom shiny updateSliderInput withProgress incProgress Progress
+#' @importFrom shiny updateSliderInput withProgress incProgress Progress renderUI tags
 #' @importFrom tools file_path_sans_ext
 #' @importFrom data.table is.data.table rbindlist
 #' @importFrom curl curl new_handle
@@ -22,10 +23,12 @@
 #' @importFrom doSNOW registerDoSNOW
 #' @importFrom foreach foreach %dopar%
 #' @importFrom mip shorten_legend
+#' @importFrom utils head
 #' @export
 
 modRunSelect <- function(input, output, session, file, resultsfolder,
-                         username = NULL, password = NULL, readFilePar = FALSE) {
+                         username = NULL, password = NULL, readFilePar = FALSE,
+                         restoreIds = NULL) {
   readdata <- function(file, username = NULL, password = NULL, addfilename = FALSE) {
     if (grepl("https://", file)) {
       con <- gzcon(curl(file, handle = new_handle(username = username, password = password)))
@@ -143,22 +146,75 @@ modRunSelect <- function(input, output, session, file, resultsfolder,
   selection <- callModule(modFilter, "runfilter", data = reactive(data), exclude = ".id", name = "RunSelect",
                           order = "date", preselectYear = preselectYear, preselectMinDate = preselectMinDate)
 
-  x <- reactiveValues(out = NULL, ready = FALSE)
+  x <- reactiveValues(out = NULL, ready = FALSE, loadedIds = NULL)
 
   fullReport <- reactive(readreports(selection()$x[[".id"]], resultsfolder, username = username, password = password))
 
+  # Load from restored IDs if provided
+  observe({
+    # Check if restoreIds is a reactive function
+    if (is.null(restoreIds) || !is.function(restoreIds)) {
+      return()
+    }
+    ids <- restoreIds()
+    if (!is.null(ids) && length(ids) > 0 && !x$ready) {
+      start <- Sys.time()
+      message(".:|RunSelect|:.  Restoring data from bookmark (", length(ids), " runs): ",
+              paste(head(ids, 3), collapse=", "), if(length(ids) > 3) "..." else "", appendLF = FALSE)
+      tryCatch({
+        x$out <- readreports(ids, resultsfolder, username = username, password = password)
+        x$ready <- TRUE
+        x$loadedIds <- ids
+        message("done! (", round(as.numeric(Sys.time() - start, units = "secs"), 2), "s)")
+      }, error = function(e) {
+        message("failed: ", e$message)
+      })
+    }
+  })
+
   observeEvent(input$load, {
     start <- Sys.time()
-    message(".:|RunSelect|:.  Read data..", appendLF = FALSE)
+    selectedIds <- selection()$x[[".id"]]
+    message(".:|RunSelect|:.  Read data (", length(selectedIds), " runs): ",
+            paste(head(selectedIds, 3), collapse=", "), if(length(selectedIds) > 3) "..." else "", appendLF = FALSE)
     x$out <- fullReport()
     x$ready <- TRUE
+    x$loadedIds <- selectedIds
     message("done! (", round(as.numeric(Sys.time() - start, units = "secs"), 2), "s)")
   })
+  # Display currently loaded runs info
+ output$loaded_runs_info <- renderUI({
+    if (!x$ready || is.null(x$out) || nrow(x$out) == 0) {
+      return(NULL)
+    }
+
+    # Get scenario names from loaded data
+    scenarios <- unique(as.character(x$out$scenario))
+    nRuns <- length(x$loadedIds)
+
+    tags$div(
+      style = "background-color: #d4edda; border: 1px solid #c3e6cb; border-radius: 4px; padding: 10px; margin-bottom: 15px;",
+      tags$strong(paste0("Currently loaded: ", nRuns, " run(s)")),
+      tags$br(),
+      tags$small(
+        style = "color: #155724;",
+        paste(head(scenarios, 5), collapse = ", "),
+        if (length(scenarios) > 5) paste0(" ... and ", length(scenarios) - 5, " more") else ""
+      ),
+      tags$br(),
+      tags$small(
+        style = "color: #666;",
+        "Use the filters below to load additional or different runs."
+      )
+    )
+  })
+
   out <- reactiveValues()
   out$report <- reactive(x$out)
   out$ready <- reactive(x$ready)
   out$variables <- reactive(names(selection()$x)[-1])
   out$selection <- selection
+  out$loadedIds <- reactive(x$loadedIds)
   progress$set(message = "Run selection ready",
                detail = "Move on to the next step...",
                value = 10)

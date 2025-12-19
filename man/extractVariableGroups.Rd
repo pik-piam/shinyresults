@@ -20,7 +20,7 @@ x <- c("a|+|1|+|aa","a|+|2|abc","a|+|1|+|bb","a|+|1|+|cc","a|+|3|+|aa","a|+|3|+|
 shinyresults:::extractVariableGroups(x)
 }
 \seealso{
-\code{\link{plotstyle.add}}
+\code{\link[mip]{plotstyle.add}}
 }
 \author{
 Jan Philipp Dietrich

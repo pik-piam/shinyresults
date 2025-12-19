@@ -1,0 +1,130 @@
+# shinyresults default variable configuration
+# Variable names use PIAM internal naming conventions (piam_variable from piamInterfaces)
+# Only includes MAgPIE variables (source=M in mapping_ScenarioMIP.csv)
+#
+# Users can override this by creating ~/.shinyresults/variables.yaml
+# or by passing a custom config file to appResults(variableConfig = "path/to/config.yaml")
+
+meta:
+  version: "1.0"
+  description: "Default key variables for MAgPIE visualization"
+  model: "MAgPIE"
+
+# Dashboard presets - groups of variables for quick display
+presets:
+  land_cover:
+    name: "Land Cover"
+    description: "Land cover types and changes"
+    variables:
+      - variable: "Resources|Land Cover|+|Cropland"
+        plot_type: "line"
+      - variable: "Resources|Land Cover|Cropland|Croparea|+|Bioenergy crops"
+        plot_type: "line"
+      - variable: "Resources|Land Cover|+|Pastures and Rangelands"
+        plot_type: "line"
+      - variable: "Resources|Land Cover|+|Forest"
+        plot_type: "line"
+      - variable: "Resources|Land Cover|+|Other Land"
+        plot_type: "line"
+      - variable: "Resources|Land Cover|+|Urban Area"
+        plot_type: "line"
+
+  GHG emissions:
+    name: "GHG Emissions"
+    description: "CO2, CH4, and N2O emissions from land"
+    variables:
+      - variable: "Emissions|CO2|Land|+|Land-use Change"
+        plot_type: "line"
+      - variable: "Emissions|CH4|Land|+|Agriculture"
+        plot_type: "line"
+      - variable: "Emissions|N2O|Land|+|Agriculture"
+        plot_type: "line"
+
+  food demand:
+    name: "Food Demand"
+    description: "Calorie Supply"
+    variables:
+      - variable: "Nutrition|Calorie Supply|+|Crops"
+        plot_type: "line"
+      - variable: "Nutrition|Calorie Supply|+|Livestock products"
+        plot_type: "line"
+      - variable: "Nutrition|Calorie Supply|+|Secondary products"
+        plot_type: "line"
+
+  agricultural production:
+    name: "Agricultural Production"
+    description: "Crop and livestock production"
+    variables:
+      - variable: "Production|+|Crops"
+        plot_type: "line"
+      - variable: "Production|+|Livestock products"
+        plot_type: "line"
+      - variable: "Production|+|Secondary products"
+        plot_type: "line"
+
+  bioenergy:
+    name: "2nd gen Bioenergy"
+    description: "2nd gen Bioenergy"
+    variables:
+      - variable: "Production|Bioenergy|2nd generation|++|Bioenergy crops"
+        plot_type: "line"
+      - variable: "Productivity|Yield|Bioenergy crops"
+        plot_type: "line"
+      - variable: "Prices|Bioenergy"
+        plot_type: "line"
+
+  productivity:
+    name: "Productivity & Yields"
+    description: "TAU and crop yields"
+    variables:
+      - variable: "Productivity|Landuse Intensity Indicator Tau"
+        plot_type: "line"
+      - variable: "Productivity|Yield|Crops|Cereals"
+        plot_type: "line"
+      - variable: "Productivity|Yield|Crops|Sugar crops"
+        plot_type: "line"
+
+  prices:
+    name: "Prices"
+    description: "Agricultural and food prices"
+    variables:
+      - variable: "SDG|SDG02|Food expenditure share"
+        plot_type: "line"
+      - variable: "Prices|Index2020|Agriculture|Food products"
+        plot_type: "line"
+      - variable: "Prices|Index2020|Agriculture|Producer|All products"
+        plot_type: "line"
+
+  environment:
+    name: "Environment"
+    description: "Environmental indicators"
+    variables:
+      - variable: "Resources|Water|Withdrawal|Agriculture"
+        plot_type: "line"
+      - variable: "Resources|Nitrogen|Pollution|Surplus"
+        plot_type: "line"
+      - variable: "Biodiversity|BII"
+        plot_type: "line"
+
+  forestry:
+    name: "Forestry"
+    description: "production, harvest and yield"
+    variables:
+      - variable: "Timber|Volumetric|Production|+|Roundwood"
+        plot_type: "line"
+      - variable: "Resources|Timber operations|Harvested area for timber|Total"
+        plot_type: "line"
+      - variable: "Timber Yields|Harvest|Total"
+        plot_type: "line"
+
+
+# Default plot settings
+defaults:
+  line_plot:
+    show_hist: true
+    show_proj: true
+    free_y: false
+    auto_y: false
+    legend_right: false
+  area_plot:
+    transpose_grid: false

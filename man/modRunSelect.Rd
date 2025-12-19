@@ -12,7 +12,8 @@ modRunSelect(
   resultsfolder,
   username = NULL,
   password = NULL,
-  readFilePar = FALSE
+  readFilePar = FALSE,
+  restoreIds = NULL
 )
 }
 \arguments{
@@ -29,6 +30,8 @@ File must come with a overview list called "files"}
 \item{password}{password to access file and resultsfolder}
 
 \item{readFilePar}{read report data files in parallel (faster) (TRUE) or in sequence (FALSE)}
+
+\item{restoreIds}{reactive containing run IDs to restore from a bookmarked URL (optional)}
 }
 \value{
 a reactive containing a merged data.frame containing results of selected runs
