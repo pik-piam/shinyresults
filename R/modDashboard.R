@@ -1,5 +1,5 @@
 # Declare global variables to avoid R CMD check NOTEs (used in ggplot2 aes())
-utils::globalVariables(c("period", "label", "value", "scenario_clean", "min", "max", "mean"))
+utils::globalVariables(c("period", "label", "value", "scenario_clean", "min", "max", "mean", "n_sources"))
 
 #' modDashboard Server Module
 #'
@@ -257,33 +257,49 @@ modDashboard <- function(input, output, session, report, validation, config) {
             valData <- valData[!is.na(valData$value) & !is.na(valData$period), ]
             if (nrow(valData) > 0) {
               # Count unique data sources - use 'model' column if available, otherwise 'scenario'
-              if ("model" %in% names(valData)) {
-                histSources <- unique(as.character(valData$model))
-              } else {
-                histSources <- unique(as.character(valData$scenario))
-              }
+              sourceCol <- if ("model" %in% names(valData)) "model" else "scenario"
+              histSources <- unique(as.character(valData[[sourceCol]]))
               nSources <- length(histSources)
 
-              # Aggregate to min/max/mean range by period (handles multiple regions/data points)
-              histAgg <- stats::aggregate(value ~ period, data = valData,
-                                          FUN = function(x) c(min(x, na.rm = TRUE), max(x, na.rm = TRUE), mean(x, na.rm = TRUE)))
-              histAgg <- cbind(histAgg[, 1, drop = FALSE], as.data.frame(histAgg$value))
-              names(histAgg) <- c("period", "min", "max", "mean")
+              # Only keep periods where we have data from at least half the sources (or at least 2)
+              # This avoids jagged edges when datasets have different year coverage
+              if (nSources > 1) {
+                periodCounts <- table(valData$period)
+                # For each period, count how many unique sources contributed
+                sourcesPerPeriod <- stats::aggregate(
+                  valData[[sourceCol]],
+                  by = list(period = valData$period),
+                  FUN = function(x) length(unique(x))
+                )
+                names(sourcesPerPeriod) <- c("period", "n_sources")
+                # Keep periods with at least 2 sources or at least half of available sources
+                minSources <- max(2, ceiling(nSources / 2))
+                goodPeriods <- sourcesPerPeriod$period[sourcesPerPeriod$n_sources >= minSources]
+                valData <- valData[valData$period %in% goodPeriods, ]
+              }
 
-              # Legend label - always show dataset count
-              histLabel <- paste0("Historical (", nSources, " dataset", if(nSources > 1) "s" else "", ")")
-              histAgg$label <- histLabel
+              if (nrow(valData) > 0) {
+                # Aggregate to min/max/mean range by period (handles multiple regions/data points)
+                histAgg <- stats::aggregate(value ~ period, data = valData,
+                                            FUN = function(x) c(min(x, na.rm = TRUE), max(x, na.rm = TRUE), mean(x, na.rm = TRUE)))
+                histAgg <- cbind(histAgg[, 1, drop = FALSE], as.data.frame(histAgg$value))
+                names(histAgg) <- c("period", "min", "max", "mean")
 
-              # Show as shaded range with mean line
-              p <- p +
-                ggplot2::geom_ribbon(data = histAgg,
-                                     ggplot2::aes(x = period, ymin = min, ymax = max, fill = label),
-                                     alpha = 0.3) +
-                ggplot2::geom_line(data = histAgg,
-                                   ggplot2::aes(x = period, y = mean, linetype = label),
-                                   color = "gray40", linewidth = 0.8) +
-                ggplot2::scale_fill_manual(name = "", values = stats::setNames("gray60", histLabel)) +
-                ggplot2::scale_linetype_manual(name = "", values = stats::setNames("solid", histLabel))
+                # Legend label - always show dataset count
+                histLabel <- paste0("Historical (", nSources, " dataset", if(nSources > 1) "s" else "", ")")
+                histAgg$label <- histLabel
+
+                # Show as shaded range with mean line
+                p <- p +
+                  ggplot2::geom_ribbon(data = histAgg,
+                                       ggplot2::aes(x = period, ymin = min, ymax = max, fill = label),
+                                       alpha = 0.3) +
+                  ggplot2::geom_line(data = histAgg,
+                                     ggplot2::aes(x = period, y = mean, linetype = label),
+                                     color = "gray40", linewidth = 0.8) +
+                  ggplot2::scale_fill_manual(name = "", values = stats::setNames("gray60", histLabel)) +
+                  ggplot2::scale_linetype_manual(name = "", values = stats::setNames("solid", histLabel))
+              }
             }
           }
 
