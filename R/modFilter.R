@@ -82,20 +82,28 @@ modFilter <- function(input, # nolint: cyclocomp_linter.
       } else {
         sf <- paste0("select", f)
         if (!is.null(input[[sf]])) {
-          slchoices <- data[[f]]
-          if (!setequal(slchoices, x[[sf]])) {
-            updateSelectizeInput(session, sf, choices = slchoices, selected = input[[sf]], server = TRUE)
+          # Get unique sorted choices, dropping unused factor levels
+          slchoices <- sort(unique(as.character(data[[f]])))
+          # Compute valid selection (intersection of current selection and available choices)
+          validSelected <- intersect(input[[sf]], slchoices)
+          if (length(validSelected) == 0) validSelected <- NULL
+          # Update UI if there are choices and they've changed
+          if (length(slchoices) > 0 && !setequal(slchoices, x[[sf]])) {
+            updateSelectizeInput(session, sf, choices = slchoices, selected = validSelected)
             x[[sf]] <- slchoices
           }
           tmp2 <- function(data, f, selection) {
+            # If selection is empty, don't filter - include all available values
+            if (length(selection) == 0) return(data)
             fvec <- (data[[f]] %in% selection)
             fvec[is.na(fvec)] <- FALSE
             return(data[fvec, ])
           }
-          data <- tmp2(data, f, input[[sf]])
+          # Use validSelected for filtering (not input which may have invalid values)
+          data <- tmp2(data, f, validSelected)
           if (!(f %in% xdataExclude)) {
             for (n in names(xdata)) {
-              xdata[[n]] <- tmp2(xdata[[n]], f, input[[sf]])
+              xdata[[n]] <- tmp2(xdata[[n]], f, validSelected)
             }
           }
         }
