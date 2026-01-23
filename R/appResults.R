@@ -29,12 +29,12 @@
 #' @param ... additional information to overwrite one of the settings from the cfg directly:
 #'            file, resultsfolder, valfile, username or password.
 #' @author Florian Humpenoeder, Jan Philipp Dietrich, Lavinia Baumstark, Pascal Sauer
-#' @importFrom shiny tagList div insertTab reactiveValues observeEvent updateTextInput
-#' observe updateSelectInput reactive hoverOpts uiOutput sliderInput
+#' @importFrom shiny tagList div insertTab reactiveValues reactiveVal observeEvent updateTextInput
+#' observe updateSelectInput reactive hoverOpts uiOutput sliderInput icon actionButton
 #' renderPrint renderDataTable downloadHandler fluidPage navbarPage tabPanel sidebarLayout sidebarPanel
 #' fileInput tags selectInput mainPanel tabsetPanel wellPanel fluidRow column radioButtons conditionalPanel
 #' checkboxInput checkboxGroupInput numericInput textInput downloadButton dataTableOutput h2 verbatimTextOutput
-#' shinyApp renderPlot plotOutput renderUI HTML nearPoints updateCheckboxInput
+#' shinyApp renderPlot plotOutput renderUI HTML nearPoints updateCheckboxInput showNotification withProgress
 #' updateSliderInput hideTab runApp Progress bookmarkButton setBookmarkExclude onBookmark onRestore
 #' @importFrom utils write.csv head
 #' @importFrom data.table fread setcolorder as.data.table data.table setnames
@@ -43,19 +43,23 @@
 #' @importFrom mip mipLineHistorical theme_mip mipArea
 #' @importFrom reshape2 dcast
 #' @importFrom ggplot2 ggsave
-#' @importFrom plotly renderPlotly ggplotly plotlyOutput
+#' @importFrom plotly renderPlotly ggplotly plotlyOutput event_data layout
+#' @importFrom rlang .data
 #' @export
 appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, variableConfig = NULL, port = 3838, ...) {
   # If config for only one model is provided by getOption("appResults") use this one.
   # If information for more models exists the user can choose the model.
   if (length(cfg) == 1) {
     cfgModel <- cfg[[1]]
+    modelName <- names(cfg)[1]
   } else {
     cat("Please choose a model:\n\n")
     models <- names(cfg)
     cat(paste(seq_along(models), models, sep = ": "), sep = "\n")
     cat("\nNumber: ")
-    cfgModel <- cfg[[as.numeric(readline())]]
+    selection <- as.numeric(readline())
+    cfgModel <- cfg[[selection]]
+    modelName <- models[selection]
   }
   # check if user provides some information on settings that should be used directly,
   # if not use information from cfg
@@ -100,41 +104,65 @@ appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, varia
     }
   }
 
+  # Check if Dashboard should be shown (only for MAgPIE)
+  showDashboard <- grepl("MAgPIE", modelName, ignore.case = TRUE)
+
   #client-sided function
   ui <- function(request) {
+    # Build tab list dynamically
+    tabs <- list(
+      tabPanel("Select Data",
+               sidebarLayout(sidebarPanel(tags$div(id = "navigation",
+                                                   selectInput(inputId = "xaxis",
+                                                               label = "Choose X-Axis",
+                                                               choices = "date"),
+                                                   selectInput(inputId = "yaxis",
+                                                               label = "Choose Y-Axis",
+                                                               choices = "runtime"),
+                                                   selectInput(inputId = "color",
+                                                               label = "Choose Colorkey",
+                                                               choices = "user"),
+                                                   tags$p(),
+                                                   tags$hr(),
+                                                   tags$p(),
+                                                   modRunSelectUI("select"))),
+                             mainPanel(
+                               tags$div(
+                                 style = "margin-bottom: 10px; display: flex; align-items: center; gap: 15px;",
+                                 actionButton("load_lasso", "Load lasso selection",
+                                              icon = icon("mouse-pointer")),
+                                 uiOutput("lasso_selection_info")
+                               ),
+                               plotlyOutput("stats", height = "600px", width = "auto"))))
+    )
+
+    # Add Dashboard tab only for MAgPIE
+    if (showDashboard) {
+      tabs <- c(tabs, list(
+        tabPanel("Dashboard",
+                 modDashboardUI("dashboard", presets = varConfig$presets))
+      ))
+    }
+
+    # Add plot tabs
+    tabs <- c(tabs, list(
+      tabPanel("LinePlot1",
+               sidebarLayout(sidebarPanel(modLinePlotUI("LinePlot1", presets = varConfig$presets)),
+                             mainPanel(plotOutput("LinePlot1",
+                                                  height = "800px", width = "auto")))),
+      tabPanel("AreaPlot1",
+               sidebarLayout(sidebarPanel(modAreaPlotUI("AreaPlot1")),
+                             mainPanel(plotlyOutput("AreaPlot1",
+                                                    height = "800px", width = "auto"))))
+    ))
+
     fluidPage(
       div(style = "position:absolute;right:1em;",
           actionButton("LineButton", label = "Add LinePlot"),
           actionButton("AreaButton", label = "Add AreaPlot"),
           bookmarkButton(label = "Share/Save State")),
-                  tabsetPanel(id = "append_tab", type = "tabs",
-                              tabPanel("Select Data",
-                                       sidebarLayout(sidebarPanel(tags$div(id = "navigation",
-                                                                           selectInput(inputId = "xaxis",
-                                                                                       label = "Choose X-Axis",
-                                                                                       choices = "date"),
-                                                                           selectInput(inputId = "yaxis",
-                                                                                       label = "Choose Y-Axis",
-                                                                                       choices = "runtime"),
-                                                                           selectInput(inputId = "color",
-                                                                                       label = "Choose Colorkey",
-                                                                                       choices = "user"),
-                                                                           tags$p(),
-                                                                           tags$hr(),
-                                                                           tags$p(),
-                                                                           modRunSelectUI("select"))),
-                                                     mainPanel(plotlyOutput("stats",
-                                                                            height = "600px", width = "auto")))),
-                              tabPanel("Dashboard",
-                                       modDashboardUI("dashboard", presets = varConfig$presets)),
-                              tabPanel("LinePlot1",
-                                       sidebarLayout(sidebarPanel(modLinePlotUI("LinePlot1", presets = varConfig$presets)),
-                                                     mainPanel(plotOutput("LinePlot1",
-                                                                          height = "800px", width = "auto")))),
-                              tabPanel("AreaPlot1",
-                                       sidebarLayout(sidebarPanel(modAreaPlotUI("AreaPlot1")),
-                                                     mainPanel(plotlyOutput("AreaPlot1",
-                                                                            height = "800px", width = "auto"))))))
+      do.call(tabsetPanel, c(list(id = "append_tab", type = "tabs"), tabs))
+    )
   }
 
   #limit for file upload set to 300 MB
@@ -237,12 +265,17 @@ appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, varia
 
     counter <- reactiveValues(LinePlot = 1, AreaPlot = 1)
 
+    # Reactive for lasso-selected IDs
+    lassoSelectedIds <- reactiveVal(NULL)
+
     repFull <- callModule(modRunSelect, "select", file = file, resultsfolder = resultsfolder,
                           username = username, password = password, readFilePar = readFilePar,
-                          restoreIds = restoredRunIds)
+                          restoreIds = restoredRunIds, lassoIds = lassoSelectedIds)
 
-    # Initialize Dashboard module
-    callModule(modDashboard, "dashboard", report = repFull, validation = reactive(valFull), config = varConfig)
+    # Initialize Dashboard module (only for MAgPIE)
+    if (showDashboard) {
+      callModule(modDashboard, "dashboard", report = repFull, validation = reactive(valFull), config = varConfig)
+    }
 
     addtab <- function(type = "Line", counter, plot = plotOutput) {
       tabname <- paste0(type, "Plot", counter)
@@ -306,6 +339,7 @@ appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, varia
       theme <- mip::theme_mip(size = 10)
 
       # only make scatter plot of runstatistics if less than 30000 runs are selected
+      hasData <- FALSE
       if (is.null(repFull$selection()$x)) {
         p <- ggplot() +
           annotate("text", x = 1, y = 1, label = "Data not yet loaded...") +
@@ -315,6 +349,7 @@ appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, varia
           annotate("text", x = 1, y = 1, label = "Too many data points (>30000)! Please filter data!") +
           theme_void()
       } else {
+        hasData <- TRUE
         # Prepare data - convert runtime from hours to minutes
         plotData <- as.data.frame(repFull$selection()$x)
         if ("runtime" %in% names(plotData)) {
@@ -326,10 +361,33 @@ appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, varia
         yVar <- cset(input$yaxis, repFull$variables())
         colorVar <- cset(input$color, repFull$variables())
 
-        p <- ggplot2::ggplot(plotData) +
-          ggplot2::theme(legend.direction = "vertical") +
-          ggplot2::geom_point(ggplot2::aes_string(y = yVar, x = xVar, color = colorVar), na.rm = TRUE) +
-          theme
+        # Add row index for identifying selected points (using key for plotly selection)
+        plotData$.row_id <- seq_len(nrow(plotData))
+
+        # Create hover text with run name and other info
+        if ("title" %in% names(plotData)) {
+          plotData$.hover_text <- paste0("<b>", plotData$title, "</b>")
+        } else {
+          plotData$.hover_text <- ""
+        }
+        if ("user" %in% names(plotData)) {
+          plotData$.hover_text <- paste0(plotData$.hover_text, "<br>User: ", plotData$user)
+        }
+        if ("date" %in% names(plotData)) {
+          plotData$.hover_text <- paste0(plotData$.hover_text, "<br>Date: ", plotData$date)
+        }
+        if ("runtime" %in% names(plotData)) {
+          plotData$.hover_text <- paste0(plotData$.hover_text, "<br>Runtime: ", round(plotData$runtime, 1), " min")
+        }
+
+        # Suppress warning about unknown aesthetics (text and key are used by plotly, not ggplot2)
+        p <- suppressWarnings(
+          ggplot2::ggplot(plotData) +
+            ggplot2::theme(legend.direction = "vertical") +
+            ggplot2::geom_point(ggplot2::aes(y = .data[[yVar]], x = .data[[xVar]], color = .data[[colorVar]],
+                                             text = .data$.hover_text, key = .data$.row_id), na.rm = TRUE) +
+            theme
+        )
 
         # Add informative axis labels
         axisLabels <- list(
@@ -342,18 +400,155 @@ appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, varia
         yLabel <- if (yVar %in% names(axisLabels)) axisLabels[[yVar]] else yVar
         xLabel <- if (xVar %in% names(axisLabels)) axisLabels[[xVar]] else xVar
         p <- p + ggplot2::labs(x = xLabel, y = yLabel)
+
       }
 
       progress$set(message = "Make it interactive",
                    detail = "This should be quick...",
                    value = 6)
-      p <- ggplotly(p)
+      p <- ggplotly(p, source = "stats_plot", tooltip = "text")
+      # Register events for selection handling (needed for all plots to avoid warnings)
+      p <- plotly::event_register(p, "plotly_click")
+      p <- plotly::event_register(p, "plotly_selected")
+      if (hasData) {
+        # Enable lasso/box selection mode and click events
+        p <- plotly::layout(p, dragmode = "lasso", clickmode = "event+select")
+      }
       message("done! (", round(as.numeric(Sys.time() - start, units = "secs"), 2), "s)")
       progress$set(message = "Send to plotter",
                    detail = "This should be quick...",
                    value = 10)
       p
     })
+
+    # Handle click selection - add single runs to current selection
+    clickedIds <- reactiveVal(character(0))
+
+    # Suppress warning about unregistered events (occurs before plot is rendered)
+    observeEvent(suppressWarnings(event_data("plotly_click", source = "stats_plot")), ignoreInit = TRUE, {
+      clicked <- suppressWarnings(event_data("plotly_click", source = "stats_plot"))
+      if (is.null(clicked) || nrow(clicked) == 0) return()
+
+      selectionData <- repFull$selection()$x
+      if (is.null(selectionData) || !".id" %in% names(selectionData)) return()
+
+      # Get the clicked run ID
+      if ("key" %in% names(clicked) && !is.na(clicked$key)) {
+        rowIdx <- as.integer(clicked$key)
+      } else if ("pointNumber" %in% names(clicked)) {
+        rowIdx <- clicked$pointNumber + 1
+      } else {
+        return()
+      }
+
+      clickedId <- selectionData$.id[rowIdx]
+      clickedScenario <- if ("scenario" %in% names(selectionData)) selectionData$scenario[rowIdx] else clickedId
+
+      # Toggle the ID in the clicked set
+      current <- clickedIds()
+      if (clickedId %in% current) {
+        clickedIds(setdiff(current, clickedId))
+        showNotification(paste0("Removed: ", clickedScenario), type = "message", duration = 2)
+      } else {
+        clickedIds(c(current, clickedId))
+        showNotification(paste0("Added: ", clickedScenario, " (", length(clickedIds()), " selected)"),
+                         type = "message", duration = 2)
+      }
+    })
+
+    # Update the lasso selection info to include clicked selections
+    output$lasso_selection_info <- renderUI({
+      # Get both lasso and click selections (suppress warning before plot exists)
+      lassoSelected <- suppressWarnings(event_data("plotly_selected", source = "stats_plot"))
+      clickSelected <- clickedIds()
+
+      selectionData <- repFull$selection()$x
+      if (is.null(selectionData) || !".id" %in% names(selectionData)) {
+        if (length(clickSelected) > 0) {
+          return(tags$span(style = "color: #28a745; font-weight: bold;",
+                           icon("check-circle"), paste0(" ", length(clickSelected), " runs clicked")))
+        }
+        return(tags$span(style = "color: #666;", "Click points or use lasso to select"))
+      }
+
+      # Count from lasso
+      nLasso <- 0
+      if (!is.null(lassoSelected) && nrow(lassoSelected) > 0) {
+        if ("key" %in% names(lassoSelected) && !all(is.na(lassoSelected$key))) {
+          selectedRows <- as.integer(lassoSelected$key)
+        } else if ("pointNumber" %in% names(lassoSelected)) {
+          selectedRows <- lassoSelected$pointNumber + 1
+        } else {
+          selectedRows <- integer(0)
+        }
+        nLasso <- length(unique(selectionData$.id[selectedRows]))
+      }
+
+      # Combine counts
+      nClick <- length(clickSelected)
+      total <- nLasso + nClick
+
+      if (total == 0) {
+        return(tags$span(style = "color: #666;", "Click points or use lasso to select"))
+      }
+
+      infoText <- if (nLasso > 0 && nClick > 0) {
+        paste0(nLasso, " lasso + ", nClick, " clicked = ", total, " runs")
+      } else if (nLasso > 0) {
+        paste0(nLasso, " runs (lasso)")
+      } else {
+        paste0(nClick, " runs (clicked)")
+      }
+
+      tags$span(
+        style = "color: #28a745; font-weight: bold;",
+        icon("check-circle"), " ", infoText
+      )
+    })
+
+    # Update load_lasso handler to include clicked selections
+    observeEvent(input$load_lasso, {
+      # Get lasso selection
+      lassoSelected <- suppressWarnings(event_data("plotly_selected", source = "stats_plot"))
+      clickSelected <- clickedIds()
+
+      selectionData <- repFull$selection()$x
+      if (is.null(selectionData) || !".id" %in% names(selectionData)) {
+        showNotification("Cannot identify runs.", type = "error")
+        return()
+      }
+
+      selectedIds <- character(0)
+
+      # Add lasso-selected IDs
+      if (!is.null(lassoSelected) && nrow(lassoSelected) > 0) {
+        if ("key" %in% names(lassoSelected) && !all(is.na(lassoSelected$key))) {
+          selectedRows <- as.integer(lassoSelected$key)
+        } else if ("pointNumber" %in% names(lassoSelected)) {
+          selectedRows <- lassoSelected$pointNumber + 1
+        } else {
+          selectedRows <- integer(0)
+        }
+        selectedIds <- unique(selectionData$.id[selectedRows])
+      }
+
+      # Add clicked IDs
+      selectedIds <- unique(c(selectedIds, clickSelected))
+
+      if (length(selectedIds) == 0) {
+        showNotification("No points selected. Click points or use lasso/box select first.",
+                         type = "warning")
+        return()
+      }
+
+      showNotification(paste("Loading", length(selectedIds), "runs..."), type = "message")
+
+      # Clear clicked selections after loading
+      clickedIds(character(0))
+
+      # Trigger the module to load these IDs
+      lassoSelectedIds(selectedIds)
+    }, ignoreInit = TRUE)
   }
 
   runApp(shinyApp(ui = ui, server = server, enableBookmarking = "url"), launch.browser = TRUE, port = port)

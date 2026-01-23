@@ -48,8 +48,12 @@ modFilter <- function(input, # nolint: cyclocomp_linter.
     for (f in filter) {
       slf <- paste0("slider", f)
       if (!is.null(input[[slf]])) {
-        slmax <- max(data[[f]], na.rm = TRUE)
-        slmin <- min(data[[f]], na.rm = TRUE)
+        # Skip if no valid data for this filter
+        validData <- data[[f]][!is.na(data[[f]])]
+        if (length(validData) == 0) next
+
+        slmax <- max(validData)
+        slmin <- min(validData)
         if (x[[slf]]["max"] != slmax || x[[slf]]["min"] != slmin) {
           updateSliderInput(session, slf,
             min = slmin - 60, max = slmax + 60,
@@ -80,7 +84,7 @@ modFilter <- function(input, # nolint: cyclocomp_linter.
         if (!is.null(input[[sf]])) {
           slchoices <- data[[f]]
           if (!setequal(slchoices, x[[sf]])) {
-            updateSelectInput(session, sf, choices = slchoices, selected = input[[sf]])
+            updateSelectizeInput(session, sf, choices = slchoices, selected = input[[sf]], server = TRUE)
             x[[sf]] <- slchoices
           }
           tmp2 <- function(data, f, selection) {
@@ -158,15 +162,19 @@ modFilter <- function(input, # nolint: cyclocomp_linter.
       } else {
         selected <- NULL
       }
+      # Suppress warning about large number of options - we use maxOptions to handle this
       return(tags$div(
         id = session$ns(paste0("div", filter)),
-        selectInput(
-          inputId = session$ns(id),
-          label = filter,
-          choices = choices,
-          selected = selected,
-          multiple = multiple
-        )#, "display:inline"
+        suppressWarnings(
+          selectizeInput(
+            inputId = session$ns(id),
+            label = filter,
+            choices = choices,
+            selected = selected,
+            multiple = multiple,
+            options = list(maxOptions = 5000, maxItems = if (multiple) 1000 else 1)
+          )
+        )
       ))
     }
   }
