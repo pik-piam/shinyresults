@@ -454,8 +454,6 @@ appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, varia
 
     # Handle click selection - add single runs to current selection
     clickedIds <- reactiveVal(character(0))
-    # Accumulated lasso selections (additive across multiple lasso operations)
-    accumulatedLassoIds <- reactiveVal(character(0))
 
     # Suppress warning about unregistered events (occurs before plot is rendered)
     observeEvent(suppressWarnings(event_data("plotly_click", source = "stats_plot")), ignoreInit = TRUE, {
@@ -489,52 +487,43 @@ appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, varia
       }
     })
 
-    # Accumulate lasso selections (additive - each new lasso adds to previous)
-    observeEvent(suppressWarnings(event_data("plotly_selected", source = "stats_plot")), ignoreInit = TRUE, {
-      lassoSelected <- suppressWarnings(event_data("plotly_selected", source = "stats_plot"))
-      if (is.null(lassoSelected) || nrow(lassoSelected) == 0) return()
-
-      selectionData <- repFull$selection()$x
-      if (is.null(selectionData) || !".id" %in% names(selectionData)) return()
-
-      # Extract IDs from lasso selection
-      if ("key" %in% names(lassoSelected) && !all(is.na(lassoSelected$key))) {
-        selectedRows <- as.integer(lassoSelected$key)
-      } else if ("pointNumber" %in% names(lassoSelected)) {
-        selectedRows <- lassoSelected$pointNumber + 1
-      } else {
-        return()
-      }
-
-      newIds <- unique(selectionData$.id[selectedRows])
-      # Add to accumulated (unique)
-      current <- accumulatedLassoIds()
-      accumulatedLassoIds(unique(c(current, newIds)))
-      nNew <- length(setdiff(newIds, current))
-      if (nNew > 0) {
-        showNotification(paste0("Added ", nNew, " runs from lasso (", length(accumulatedLassoIds()), " total selected)"),
-                         type = "message", duration = 2)
-      }
-    })
-
-    # Reset selection handler
+    # Reset selection handler - clears clicked selections (lasso is reset by drawing new one)
     observeEvent(input$reset_selection, {
       clickedIds(character(0))
-      accumulatedLassoIds(character(0))
-      showNotification("Selection cleared", type = "message", duration = 2)
+      showNotification("Click selection cleared", type = "message", duration = 2)
     })
 
-    # Update the lasso selection info to include clicked and accumulated lasso selections
+    # Update the lasso selection info to include clicked selections
     output$lasso_selection_info <- renderUI({
-      # Use accumulated lasso IDs and click selections
-      lassoIds <- accumulatedLassoIds()
-      clickIds <- clickedIds()
+      # Get both lasso and click selections (suppress warning before plot exists)
+      lassoSelected <- suppressWarnings(event_data("plotly_selected", source = "stats_plot"))
+      clickSelected <- clickedIds()
 
-      # Count unique selections (some might overlap)
-      allIds <- unique(c(lassoIds, clickIds))
-      nLasso <- length(lassoIds)
-      nClick <- length(clickIds)
-      total <- length(allIds)
+      selectionData <- repFull$selection()$x
+      if (is.null(selectionData) || !".id" %in% names(selectionData)) {
+        if (length(clickSelected) > 0) {
+          return(tags$span(style = "color: #28a745; font-weight: bold;",
+                           icon("check-circle"), paste0(" ", length(clickSelected), " runs clicked")))
+        }
+        return(tags$span(style = "color: #666;", "Click points or use lasso to select"))
+      }
+
+      # Count from lasso
+      nLasso <- 0
+      if (!is.null(lassoSelected) && nrow(lassoSelected) > 0) {
+        if ("key" %in% names(lassoSelected) && !all(is.na(lassoSelected$key))) {
+          selectedRows <- as.integer(lassoSelected$key)
+        } else if ("pointNumber" %in% names(lassoSelected)) {
+          selectedRows <- lassoSelected$pointNumber + 1
+        } else {
+          selectedRows <- integer(0)
+        }
+        nLasso <- length(unique(selectionData$.id[selectedRows]))
+      }
+
+      # Combine counts
+      nClick <- length(clickSelected)
+      total <- nLasso + nClick
 
       if (total == 0) {
         return(tags$span(style = "color: #666;", "Click points or use lasso to select"))
@@ -554,10 +543,34 @@ appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, varia
       )
     })
 
-    # Load selection handler - uses accumulated lasso and clicked IDs
+    # Load selection handler - uses current lasso and clicked IDs
     observeEvent(input$load_lasso, {
-      # Combine accumulated lasso IDs and clicked IDs
-      selectedIds <- unique(c(accumulatedLassoIds(), clickedIds()))
+      # Get lasso selection
+      lassoSelected <- suppressWarnings(event_data("plotly_selected", source = "stats_plot"))
+      clickSelected <- clickedIds()
+
+      selectionData <- repFull$selection()$x
+      if (is.null(selectionData) || !".id" %in% names(selectionData)) {
+        showNotification("Cannot identify runs.", type = "error")
+        return()
+      }
+
+      selectedIds <- character(0)
+
+      # Add lasso-selected IDs
+      if (!is.null(lassoSelected) && nrow(lassoSelected) > 0) {
+        if ("key" %in% names(lassoSelected) && !all(is.na(lassoSelected$key))) {
+          selectedRows <- as.integer(lassoSelected$key)
+        } else if ("pointNumber" %in% names(lassoSelected)) {
+          selectedRows <- lassoSelected$pointNumber + 1
+        } else {
+          selectedRows <- integer(0)
+        }
+        selectedIds <- unique(selectionData$.id[selectedRows])
+      }
+
+      # Add clicked IDs
+      selectedIds <- unique(c(selectedIds, clickSelected))
 
       if (length(selectedIds) == 0) {
         showNotification("No points selected. Click points or use lasso/box select first.",
@@ -567,9 +580,8 @@ appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, varia
 
       showNotification(paste("Loading", length(selectedIds), "runs..."), type = "message")
 
-      # Clear selections after loading
+      # Clear clicked selections after loading
       clickedIds(character(0))
-      accumulatedLassoIds(character(0))
 
       # Trigger the module to load these IDs
       lassoSelectedIds(selectedIds)
