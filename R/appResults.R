@@ -129,8 +129,10 @@ appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, varia
                              mainPanel(
                                tags$div(
                                  style = "margin-bottom: 10px; display: flex; align-items: center; gap: 15px;",
-                                 actionButton("load_lasso", "Load lasso selection",
-                                              icon = icon("mouse-pointer")),
+                                 actionButton("load_lasso", "Add selection to loaded runs",
+                                              icon = icon("plus-circle")),
+                                 actionButton("reset_selection", "Reset selection",
+                                              icon = icon("times-circle")),
                                  uiOutput("lasso_selection_info")
                                ),
                                plotlyOutput("stats", height = "600px", width = "auto"))))
@@ -183,6 +185,10 @@ appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, varia
     # Bookmark handler - save state including loaded run IDs
     onBookmark(function(state) {
       state$values$activeTab <- input$append_tab
+      # Save Stats tab axis/color selections
+      state$values$statsXaxis <- input$xaxis
+      state$values$statsYaxis <- input$yaxis
+      state$values$statsColor <- input$color
       # Save dashboard filter selections
       state$values$dashboardRegion <- input[["dashboard-region_filter"]]
       state$values$dashboardScenarios <- input[["dashboard-scenario_filter"]]
@@ -199,6 +205,8 @@ appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, varia
 
     # Reactive values for restored dashboard state
     restoredDashboardState <- reactiveValues(region = NULL, scenarios = NULL)
+    # Reactive values for restored Stats tab state
+    restoredStatsState <- reactiveValues(xaxis = NULL, yaxis = NULL, color = NULL)
 
     # Restore handler - restore state from bookmark
     onRestore(function(state) {
@@ -215,6 +223,10 @@ appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, varia
       # Store dashboard filter state for later restoration
       restoredDashboardState$region <- state$values$dashboardRegion
       restoredDashboardState$scenarios <- state$values$dashboardScenarios
+      # Store Stats tab state for later restoration
+      restoredStatsState$xaxis <- state$values$statsXaxis
+      restoredStatsState$yaxis <- state$values$statsYaxis
+      restoredStatsState$color <- state$values$statsColor
     })
 
     # Restore dashboard filters after data is loaded
@@ -227,6 +239,24 @@ appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, varia
       if (!is.null(restoredDashboardState$scenarios)) {
         updateSelectInput(session, "dashboard-scenario_filter", selected = restoredDashboardState$scenarios)
         restoredDashboardState$scenarios <- NULL
+      }
+    })
+
+    # Restore Stats tab selections after variables are available
+    observe({
+      req(repFull$variables())
+      vars <- repFull$variables()
+      if (!is.null(restoredStatsState$xaxis) && restoredStatsState$xaxis %in% vars) {
+        updateSelectInput(session, "xaxis", selected = restoredStatsState$xaxis)
+        restoredStatsState$xaxis <- NULL
+      }
+      if (!is.null(restoredStatsState$yaxis) && restoredStatsState$yaxis %in% vars) {
+        updateSelectInput(session, "yaxis", selected = restoredStatsState$yaxis)
+        restoredStatsState$yaxis <- NULL
+      }
+      if (!is.null(restoredStatsState$color) && restoredStatsState$color %in% vars) {
+        updateSelectInput(session, "color", selected = restoredStatsState$color)
+        restoredStatsState$color <- NULL
       }
     })
 
@@ -423,6 +453,8 @@ appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, varia
 
     # Handle click selection - add single runs to current selection
     clickedIds <- reactiveVal(character(0))
+    # Accumulated lasso selections (additive across multiple lasso operations)
+    accumulatedLassoIds <- reactiveVal(character(0))
 
     # Suppress warning about unregistered events (occurs before plot is rendered)
     observeEvent(suppressWarnings(event_data("plotly_click", source = "stats_plot")), ignoreInit = TRUE, {
@@ -456,37 +488,52 @@ appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, varia
       }
     })
 
-    # Update the lasso selection info to include clicked selections
-    output$lasso_selection_info <- renderUI({
-      # Get both lasso and click selections (suppress warning before plot exists)
+    # Accumulate lasso selections (additive - each new lasso adds to previous)
+    observeEvent(suppressWarnings(event_data("plotly_selected", source = "stats_plot")), ignoreInit = TRUE, {
       lassoSelected <- suppressWarnings(event_data("plotly_selected", source = "stats_plot"))
-      clickSelected <- clickedIds()
+      if (is.null(lassoSelected) || nrow(lassoSelected) == 0) return()
 
       selectionData <- repFull$selection()$x
-      if (is.null(selectionData) || !".id" %in% names(selectionData)) {
-        if (length(clickSelected) > 0) {
-          return(tags$span(style = "color: #28a745; font-weight: bold;",
-                           icon("check-circle"), paste0(" ", length(clickSelected), " runs clicked")))
-        }
-        return(tags$span(style = "color: #666;", "Click points or use lasso to select"))
+      if (is.null(selectionData) || !".id" %in% names(selectionData)) return()
+
+      # Extract IDs from lasso selection
+      if ("key" %in% names(lassoSelected) && !all(is.na(lassoSelected$key))) {
+        selectedRows <- as.integer(lassoSelected$key)
+      } else if ("pointNumber" %in% names(lassoSelected)) {
+        selectedRows <- lassoSelected$pointNumber + 1
+      } else {
+        return()
       }
 
-      # Count from lasso
-      nLasso <- 0
-      if (!is.null(lassoSelected) && nrow(lassoSelected) > 0) {
-        if ("key" %in% names(lassoSelected) && !all(is.na(lassoSelected$key))) {
-          selectedRows <- as.integer(lassoSelected$key)
-        } else if ("pointNumber" %in% names(lassoSelected)) {
-          selectedRows <- lassoSelected$pointNumber + 1
-        } else {
-          selectedRows <- integer(0)
-        }
-        nLasso <- length(unique(selectionData$.id[selectedRows]))
+      newIds <- unique(selectionData$.id[selectedRows])
+      # Add to accumulated (unique)
+      current <- accumulatedLassoIds()
+      accumulatedLassoIds(unique(c(current, newIds)))
+      nNew <- length(setdiff(newIds, current))
+      if (nNew > 0) {
+        showNotification(paste0("Added ", nNew, " runs from lasso (", length(accumulatedLassoIds()), " total selected)"),
+                         type = "message", duration = 2)
       }
+    })
 
-      # Combine counts
-      nClick <- length(clickSelected)
-      total <- nLasso + nClick
+    # Reset selection handler
+    observeEvent(input$reset_selection, {
+      clickedIds(character(0))
+      accumulatedLassoIds(character(0))
+      showNotification("Selection cleared", type = "message", duration = 2)
+    })
+
+    # Update the lasso selection info to include clicked and accumulated lasso selections
+    output$lasso_selection_info <- renderUI({
+      # Use accumulated lasso IDs and click selections
+      lassoIds <- accumulatedLassoIds()
+      clickIds <- clickedIds()
+
+      # Count unique selections (some might overlap)
+      allIds <- unique(c(lassoIds, clickIds))
+      nLasso <- length(lassoIds)
+      nClick <- length(clickIds)
+      total <- length(allIds)
 
       if (total == 0) {
         return(tags$span(style = "color: #666;", "Click points or use lasso to select"))
@@ -506,34 +553,10 @@ appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, varia
       )
     })
 
-    # Update load_lasso handler to include clicked selections
+    # Load selection handler - uses accumulated lasso and clicked IDs
     observeEvent(input$load_lasso, {
-      # Get lasso selection
-      lassoSelected <- suppressWarnings(event_data("plotly_selected", source = "stats_plot"))
-      clickSelected <- clickedIds()
-
-      selectionData <- repFull$selection()$x
-      if (is.null(selectionData) || !".id" %in% names(selectionData)) {
-        showNotification("Cannot identify runs.", type = "error")
-        return()
-      }
-
-      selectedIds <- character(0)
-
-      # Add lasso-selected IDs
-      if (!is.null(lassoSelected) && nrow(lassoSelected) > 0) {
-        if ("key" %in% names(lassoSelected) && !all(is.na(lassoSelected$key))) {
-          selectedRows <- as.integer(lassoSelected$key)
-        } else if ("pointNumber" %in% names(lassoSelected)) {
-          selectedRows <- lassoSelected$pointNumber + 1
-        } else {
-          selectedRows <- integer(0)
-        }
-        selectedIds <- unique(selectionData$.id[selectedRows])
-      }
-
-      # Add clicked IDs
-      selectedIds <- unique(c(selectedIds, clickSelected))
+      # Combine accumulated lasso IDs and clicked IDs
+      selectedIds <- unique(c(accumulatedLassoIds(), clickedIds()))
 
       if (length(selectedIds) == 0) {
         showNotification("No points selected. Click points or use lasso/box select first.",
@@ -543,8 +566,9 @@ appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, varia
 
       showNotification(paste("Loading", length(selectedIds), "runs..."), type = "message")
 
-      # Clear clicked selections after loading
+      # Clear selections after loading
       clickedIds(character(0))
+      accumulatedLassoIds(character(0))
 
       # Trigger the module to load these IDs
       lassoSelectedIds(selectedIds)
