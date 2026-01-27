@@ -185,10 +185,10 @@ appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, varia
     # Bookmark handler - save state including loaded run IDs
     onBookmark(function(state) {
       state$values$activeTab <- input$append_tab
-      # Save Stats tab axis/color selections
-      state$values$statsXaxis <- input$xaxis
-      state$values$statsYaxis <- input$yaxis
+      # Save Stats tab colorkey selection
       state$values$statsColor <- input$color
+      # Save sidebar filter selections (user filter)
+      state$values$filterUser <- input[["select-runfilter-selectuser"]]
       # Save dashboard filter selections
       state$values$dashboardRegion <- input[["dashboard-region_filter"]]
       state$values$dashboardScenarios <- input[["dashboard-scenario_filter"]]
@@ -206,7 +206,7 @@ appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, varia
     # Reactive values for restored dashboard state
     restoredDashboardState <- reactiveValues(region = NULL, scenarios = NULL)
     # Reactive values for restored Stats tab state
-    restoredStatsState <- reactiveValues(xaxis = NULL, yaxis = NULL, color = NULL)
+    restoredStatsState <- reactiveValues(color = NULL, filterUser = NULL)
 
     # Restore handler - restore state from bookmark
     onRestore(function(state) {
@@ -224,9 +224,9 @@ appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, varia
       restoredDashboardState$region <- state$values$dashboardRegion
       restoredDashboardState$scenarios <- state$values$dashboardScenarios
       # Store Stats tab state for later restoration
-      restoredStatsState$xaxis <- state$values$statsXaxis
-      restoredStatsState$yaxis <- state$values$statsYaxis
       restoredStatsState$color <- state$values$statsColor
+      # Store sidebar filter state for later restoration
+      restoredStatsState$filterUser <- state$values$filterUser
     })
 
     # Restore dashboard filters after data is loaded
@@ -242,21 +242,22 @@ appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, varia
       }
     })
 
-    # Restore Stats tab selections after variables are available
+    # Restore Stats tab colorkey after variables are available
     observe({
       req(repFull$variables())
       vars <- repFull$variables()
-      if (!is.null(restoredStatsState$xaxis) && restoredStatsState$xaxis %in% vars) {
-        updateSelectInput(session, "xaxis", selected = restoredStatsState$xaxis)
-        restoredStatsState$xaxis <- NULL
-      }
-      if (!is.null(restoredStatsState$yaxis) && restoredStatsState$yaxis %in% vars) {
-        updateSelectInput(session, "yaxis", selected = restoredStatsState$yaxis)
-        restoredStatsState$yaxis <- NULL
-      }
       if (!is.null(restoredStatsState$color) && restoredStatsState$color %in% vars) {
         updateSelectInput(session, "color", selected = restoredStatsState$color)
         restoredStatsState$color <- NULL
+      }
+    })
+
+    # Restore user filter after data is loaded
+    observe({
+      req(repFull$ready())
+      if (!is.null(restoredStatsState$filterUser)) {
+        updateSelectizeInput(session, "select-runfilter-selectuser", selected = restoredStatsState$filterUser)
+        restoredStatsState$filterUser <- NULL
       }
     })
 
