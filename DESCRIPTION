@@ -30,6 +30,7 @@ Imports:
     plotly,
     reshape2,
     rlang,
+    shinyjs,
     snow,
     trafficlight,
     withr,

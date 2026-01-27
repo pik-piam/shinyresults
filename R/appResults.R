@@ -36,6 +36,7 @@
 #' checkboxInput checkboxGroupInput numericInput textInput downloadButton dataTableOutput h2 verbatimTextOutput
 #' shinyApp renderPlot plotOutput renderUI HTML nearPoints updateCheckboxInput showNotification withProgress
 #' updateSliderInput hideTab runApp Progress bookmarkButton setBookmarkExclude onBookmark onRestore
+#' @importFrom shinyjs useShinyjs disable enable
 #' @importFrom utils write.csv head
 #' @importFrom data.table fread setcolorder as.data.table data.table setnames
 #' @importFrom trafficlight trafficlight
@@ -43,7 +44,7 @@
 #' @importFrom mip mipLineHistorical theme_mip mipArea
 #' @importFrom reshape2 dcast
 #' @importFrom ggplot2 ggsave
-#' @importFrom plotly renderPlotly ggplotly plotlyOutput event_data layout
+#' @importFrom plotly renderPlotly ggplotly plotlyOutput event_data layout plotlyProxy plotlyProxyInvoke `%>%`
 #' @importFrom rlang .data
 #' @export
 appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, variableConfig = NULL, port = 3838, ...) {
@@ -129,8 +130,8 @@ appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, varia
                              mainPanel(
                                tags$div(
                                  style = "margin-bottom: 10px; display: flex; align-items: center; gap: 15px;",
-                                 actionButton("load_lasso", "Add selection to loaded runs",
-                                              icon = icon("plus-circle")),
+                                 actionButton("load_lasso", "Load manual selection",
+                                              icon = icon("download")),
                                  actionButton("reset_selection", "Reset selection",
                                               icon = icon("times-circle")),
                                  uiOutput("lasso_selection_info")
@@ -159,6 +160,7 @@ appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, varia
     ))
 
     fluidPage(
+      shinyjs::useShinyjs(),
       div(style = "position:absolute;right:1em;",
           actionButton("LineButton", label = "Add LinePlot"),
           actionButton("AreaButton", label = "Add AreaPlot"),
@@ -175,6 +177,7 @@ appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, varia
 
     # Set up bookmark exclusions (exclude large reactive outputs and filter inputs)
     # Exclude filter-related inputs to prevent Shiny's auto-restore from interfering with our ID-based restore
+    # Set up bookmark exclusions (exclude large reactive outputs and filter inputs)
     setBookmarkExclude(c("stats", "LinePlot1", "AreaPlot1",
                          "select-load", "select-runfilter-scenario", "select-runfilter-model",
                          "select-runfilter-user", "select-runfilter-year", "select-runfilter-date"))
@@ -185,10 +188,6 @@ appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, varia
     # Bookmark handler - save state including loaded run IDs
     onBookmark(function(state) {
       state$values$activeTab <- input$append_tab
-      # Save Stats tab colorkey selection
-      state$values$statsColor <- input$color
-      # Save sidebar filter selections (user filter)
-      state$values$filterUser <- input[["select-runfilter-selectuser"]]
       # Save dashboard filter selections
       state$values$dashboardRegion <- input[["dashboard-region_filter"]]
       state$values$dashboardScenarios <- input[["dashboard-scenario_filter"]]
@@ -205,8 +204,6 @@ appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, varia
 
     # Reactive values for restored dashboard state
     restoredDashboardState <- reactiveValues(region = NULL, scenarios = NULL)
-    # Reactive values for restored Stats tab state
-    restoredStatsState <- reactiveValues(color = NULL, filterUser = NULL)
 
     # Restore handler - restore state from bookmark
     onRestore(function(state) {
@@ -223,10 +220,6 @@ appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, varia
       # Store dashboard filter state for later restoration
       restoredDashboardState$region <- state$values$dashboardRegion
       restoredDashboardState$scenarios <- state$values$dashboardScenarios
-      # Store Stats tab state for later restoration
-      restoredStatsState$color <- state$values$statsColor
-      # Store sidebar filter state for later restoration
-      restoredStatsState$filterUser <- state$values$filterUser
     })
 
     # Restore dashboard filters after data is loaded
@@ -239,25 +232,6 @@ appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, varia
       if (!is.null(restoredDashboardState$scenarios)) {
         updateSelectInput(session, "dashboard-scenario_filter", selected = restoredDashboardState$scenarios)
         restoredDashboardState$scenarios <- NULL
-      }
-    })
-
-    # Restore Stats tab colorkey after variables are available
-    observe({
-      req(repFull$variables())
-      vars <- repFull$variables()
-      if (!is.null(restoredStatsState$color) && restoredStatsState$color %in% vars) {
-        updateSelectInput(session, "color", selected = restoredStatsState$color)
-        restoredStatsState$color <- NULL
-      }
-    })
-
-    # Restore user filter after data is loaded
-    observe({
-      req(repFull$ready())
-      if (!is.null(restoredStatsState$filterUser)) {
-        updateSelectizeInput(session, "select-runfilter-selectuser", selected = restoredStatsState$filterUser)
-        restoredStatsState$filterUser <- NULL
       }
     })
 
@@ -454,6 +428,8 @@ appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, varia
 
     # Handle click selection - add single runs to current selection
     clickedIds <- reactiveVal(character(0))
+    # Flag to ignore lasso selection (set TRUE after reset, FALSE when new lasso is made)
+    ignoreLasso <- reactiveVal(FALSE)
 
     # Suppress warning about unregistered events (occurs before plot is rendered)
     observeEvent(suppressWarnings(event_data("plotly_click", source = "stats_plot")), ignoreInit = TRUE, {
@@ -487,29 +463,39 @@ appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, varia
       }
     })
 
-    # Reset selection handler - clears clicked selections (lasso is reset by drawing new one)
+    # Reset selection handler - clears both clicked and lasso selections
     observeEvent(input$reset_selection, {
       clickedIds(character(0))
-      showNotification("Click selection cleared", type = "message", duration = 2)
+      ignoreLasso(TRUE)  # Ignore lasso until new selection is made
+      # Clear plotly lasso/box selection visually
+      plotly::plotlyProxy("stats", session) %>%
+        plotly::plotlyProxyInvoke("restyle", list(selectedpoints = list(NULL)))
+      showNotification("Selection cleared", type = "message", duration = 2)
     })
 
-    # Update the lasso selection info to include clicked selections
-    output$lasso_selection_info <- renderUI({
-      # Get both lasso and click selections (suppress warning before plot exists)
-      lassoSelected <- suppressWarnings(event_data("plotly_selected", source = "stats_plot"))
+    # Detect new lasso selection and re-enable lasso tracking
+    observeEvent(suppressWarnings(event_data("plotly_selected", source = "stats_plot")), {
+      if (ignoreLasso()) {
+        ignoreLasso(FALSE)  # New selection made, stop ignoring
+      }
+    }, ignoreInit = TRUE)
+
+    # Helper to get all selected IDs (lasso + clicked, deduplicated)
+    getSelectedIds <- reactive({
       clickSelected <- clickedIds()
 
-      selectionData <- repFull$selection()$x
-      if (is.null(selectionData) || !".id" %in% names(selectionData)) {
-        if (length(clickSelected) > 0) {
-          return(tags$span(style = "color: #28a745; font-weight: bold;",
-                           icon("check-circle"), paste0(" ", length(clickSelected), " runs clicked")))
-        }
-        return(tags$span(style = "color: #666;", "Click points or use lasso to select"))
+      # If lasso is being ignored (after reset), only return clicked
+      if (ignoreLasso()) {
+        return(clickSelected)
       }
 
-      # Count from lasso
-      nLasso <- 0
+      lassoSelected <- suppressWarnings(event_data("plotly_selected", source = "stats_plot"))
+      selectionData <- repFull$selection()$x
+      if (is.null(selectionData) || !".id" %in% names(selectionData)) {
+        return(clickSelected)
+      }
+
+      lassoIds <- character(0)
       if (!is.null(lassoSelected) && nrow(lassoSelected) > 0) {
         if ("key" %in% names(lassoSelected) && !all(is.na(lassoSelected$key))) {
           selectedRows <- as.integer(lassoSelected$key)
@@ -518,59 +504,40 @@ appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, varia
         } else {
           selectedRows <- integer(0)
         }
-        nLasso <- length(unique(selectionData$.id[selectedRows]))
+        lassoIds <- unique(selectionData$.id[selectedRows])
       }
 
-      # Combine counts
-      nClick <- length(clickSelected)
-      total <- nLasso + nClick
+      unique(c(lassoIds, clickSelected))
+    })
+
+    # Disable/enable Load button based on selection state
+    observe({
+      selectedIds <- getSelectedIds()
+      if (length(selectedIds) > 0) {
+        shinyjs::disable("select-load")
+      } else {
+        shinyjs::enable("select-load")
+      }
+    })
+
+    # Update the lasso selection info
+    output$lasso_selection_info <- renderUI({
+      selectedIds <- getSelectedIds()
+      total <- length(selectedIds)
 
       if (total == 0) {
-        return(tags$span(style = "color: #666;", "Click points or use lasso to select"))
-      }
-
-      infoText <- if (nLasso > 0 && nClick > 0) {
-        paste0(nLasso, " lasso + ", nClick, " clicked = ", total, " runs")
-      } else if (nLasso > 0) {
-        paste0(nLasso, " runs (lasso)")
-      } else {
-        paste0(nClick, " runs (clicked)")
+        return(tags$span(style = "color: #666;", "Click or lasso to select (hold Shift to add)"))
       }
 
       tags$span(
         style = "color: #28a745; font-weight: bold;",
-        icon("check-circle"), " ", infoText
+        icon("check-circle"), " ", total, " runs selected (Shift to add more)"
       )
     })
 
-    # Load selection handler - uses current lasso and clicked IDs
+    # Load selection handler - loads lasso/clicked selection
     observeEvent(input$load_lasso, {
-      # Get lasso selection
-      lassoSelected <- suppressWarnings(event_data("plotly_selected", source = "stats_plot"))
-      clickSelected <- clickedIds()
-
-      selectionData <- repFull$selection()$x
-      if (is.null(selectionData) || !".id" %in% names(selectionData)) {
-        showNotification("Cannot identify runs.", type = "error")
-        return()
-      }
-
-      selectedIds <- character(0)
-
-      # Add lasso-selected IDs
-      if (!is.null(lassoSelected) && nrow(lassoSelected) > 0) {
-        if ("key" %in% names(lassoSelected) && !all(is.na(lassoSelected$key))) {
-          selectedRows <- as.integer(lassoSelected$key)
-        } else if ("pointNumber" %in% names(lassoSelected)) {
-          selectedRows <- lassoSelected$pointNumber + 1
-        } else {
-          selectedRows <- integer(0)
-        }
-        selectedIds <- unique(selectionData$.id[selectedRows])
-      }
-
-      # Add clicked IDs
-      selectedIds <- unique(c(selectedIds, clickSelected))
+      selectedIds <- getSelectedIds()
 
       if (length(selectedIds) == 0) {
         showNotification("No points selected. Click points or use lasso/box select first.",
@@ -580,8 +547,12 @@ appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, varia
 
       showNotification(paste("Loading", length(selectedIds), "runs..."), type = "message")
 
-      # Clear clicked selections after loading
+      # Clear selections after loading
       clickedIds(character(0))
+      ignoreLasso(TRUE)
+      # Clear plotly lasso selection
+      plotly::plotlyProxy("stats", session) %>%
+        plotly::plotlyProxyInvoke("restyle", list(selectedpoints = list(NULL)))
 
       # Trigger the module to load these IDs
       lassoSelectedIds(selectedIds)
