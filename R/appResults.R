@@ -36,7 +36,6 @@
 #' checkboxInput checkboxGroupInput numericInput textInput downloadButton dataTableOutput h2 verbatimTextOutput
 #' shinyApp renderPlot plotOutput renderUI HTML nearPoints updateCheckboxInput showNotification withProgress
 #' updateSliderInput hideTab runApp Progress bookmarkButton setBookmarkExclude onBookmark onRestore
-#' @importFrom shinyjs useShinyjs disable enable
 #' @importFrom utils write.csv head
 #' @importFrom data.table fread setcolorder as.data.table data.table setnames
 #' @importFrom trafficlight trafficlight
@@ -160,7 +159,16 @@ appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, varia
     ))
 
     fluidPage(
-      shinyjs::useShinyjs(),
+      # Inline JavaScript for enabling/disabling buttons
+      tags$head(tags$script(HTML("
+        Shiny.addCustomMessageHandler('toggleButton', function(msg) {
+          var btn = document.getElementById(msg.id);
+          if (btn) {
+            btn.disabled = msg.disable;
+            btn.style.opacity = msg.disable ? '0.5' : '1';
+          }
+        });
+      "))),
       div(style = "position:absolute;right:1em;",
           actionButton("LineButton", label = "Add LinePlot"),
           actionButton("AreaButton", label = "Add AreaPlot"),
@@ -513,11 +521,10 @@ appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, varia
     # Disable/enable Load button based on selection state
     observe({
       selectedIds <- getSelectedIds()
-      if (length(selectedIds) > 0) {
-        shinyjs::disable("select-load")
-      } else {
-        shinyjs::enable("select-load")
-      }
+      session$sendCustomMessage("toggleButton", list(
+        id = "select-load",
+        disable = length(selectedIds) > 0
+      ))
     })
 
     # Update the lasso selection info
