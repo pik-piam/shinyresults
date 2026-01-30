@@ -41,35 +41,72 @@ modLinePlot <- function(input, output, session, report, validation) {
     start <- Sys.time()
     message(".:|",sub("-$","",session$ns('')),"|:.  Create line plot..", appendLF = FALSE)
     if(report$ready()) {
-      if(nrow(selection()$x)>20000) {
-        p <- ggplot() +  
-          annotate("text", x=1, y=1, label= "Too many data points (>20000)! Please filter data!") + 
-          theme_void()  
+      plotData <- tryCatch(selection()$x, error = function(e) NULL)
+      # Check for NULL or empty data
+      if (is.null(plotData) || !is.data.frame(plotData) || nrow(plotData) == 0) {
+        p <- ggplot() +
+          annotate("text", x=1, y=1, label= "No data available. Please adjust filters.") +
+          theme_void()
+      } else if(nrow(plotData)>20000) {
+        p <- ggplot() +
+          annotate("text", x=1, y=1, label= "Too many data points (>20000)! Please filter data!") +
+          theme_void()
       } else {
-        history     <- NULL
-        projections <- NULL
-        
-        if(input$show_hist) {
-          bla <- selection()$xdata$validation
-          history <- bla[bla$scenario == "historical",]
-          
-        } 
-        if (input$show_proj) {
-          blub <- selection()$xdata$validation
-          projections <- blub[blub$scenario != "historical",]
+        # Validate required columns exist
+        requiredCols <- c("period", "value", "scenario", "region")
+        missingCols <- setdiff(requiredCols, names(plotData))
+        if (length(missingCols) > 0) {
+          p <- ggplot() +
+            annotate("text", x=1, y=1, label= paste("Missing columns:", paste(missingCols, collapse=", "))) +
+            theme_void()
+        } else {
+          # Remove rows with NA in critical columns
+          plotData <- plotData[!is.na(plotData$value) & !is.na(plotData$period), ]
+          if (nrow(plotData) == 0) {
+            p <- ggplot() +
+              annotate("text", x=1, y=1, label= "No valid data after removing NA values.") +
+              theme_void()
+          } else {
+            history     <- NULL
+            projections <- NULL
+
+            if(input$show_hist) {
+              bla <- tryCatch(selection()$xdata$validation, error = function(e) NULL)
+              if (!is.null(bla) && is.data.frame(bla) && nrow(bla) > 0) {
+                history <- bla[bla$scenario == "historical",]
+                if (nrow(history) == 0) history <- NULL
+              }
+            }
+            if (input$show_proj) {
+              blub <- tryCatch(selection()$xdata$validation, error = function(e) NULL)
+              if (!is.null(blub) && is.data.frame(blub) && nrow(blub) > 0) {
+                projections <- blub[blub$scenario != "historical",]
+                if (nrow(projections) == 0) projections <- NULL
+              }
+            }
+
+            validation <- rbind(history, projections)
+            if (!is.null(validation) && nrow(validation) == 0) validation <- NULL
+
+            p <- tryCatch({
+              # Suppress warnings from mip package (aes_string deprecation)
+              suppressWarnings(suppressMessages(mipLineHistorical(x    = plotData,
+                                   x_hist = validation,
+                                   size   = 10,
+                                   ylab   = as.character(plotData$unit[1]),
+                                   title  = as.character(plotData$variable[1]),
+                                   legend.pos = ifelse(input$legend_right, "right", "bottom"),
+                                   scales = ifelse(input$free_y,"free_y","fixed"),
+                                   ylim = switch(input$auto_y + 1, 0, NULL)
+                                   )))
+            }, error = function(e) {
+              message("Error in mipLineHistorical: ", e$message)
+              ggplot() +
+                annotate("text", x=1, y=1, label= paste("Plot error:", e$message)) +
+                theme_void()
+            })
+          }
         }
-        
-        validation <- rbind(history,projections)
-        
-        p <- suppressMessages(mipLineHistorical(x    = selection()$x,
-                             x_hist = validation,
-                             size   = 10,
-                             ylab   = as.character(selection()$x$unit[1]),
-                             title  = as.character(selection()$x$variable[1]),
-                             legend.pos = ifelse(input$legend_right, "right", "bottom"),
-                             scales = ifelse(input$free_y,"free_y","fixed"),
-                             ylim = switch(input$auto_y + 1, 0, NULL)
-                             ))
       }
     } else p <- NULL
     message("done! (",round(as.numeric(Sys.time()-start,units="secs"),2),"s)")

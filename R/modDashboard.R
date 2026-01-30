@@ -14,6 +14,7 @@ utils::globalVariables(c("period", "label", "value", "scenario_clean", "min", "m
 #' @seealso \code{\link{modDashboardUI}}, \code{\link{appResults}}, \code{\link{loadVariableConfig}}
 #' @importFrom ggplot2 ggplot theme_void annotate ggsave theme element_text unit guides guide_legend aes geom_line geom_point geom_ribbon labs theme_minimal
 #' @importFrom plotly renderPlotly ggplotly plotlyOutput layout
+#' @importFrom rlang .data
 #' @importFrom mip mipLineHistorical mipArea theme_mip
 #' @importFrom data.table as.data.table
 #' @importFrom graphics plot.new text
@@ -42,41 +43,37 @@ modDashboard <- function(input, output, session, report, validation, config) {
 
   # Update scenario filter choices when data is loaded
   observe({
-    tryCatch({
-      req(report$ready(), report$report())
-      data <- report$report()
-      req(is.data.frame(data), nrow(data) > 0, "scenario" %in% names(data))
-      scenarios <- unique(as.character(data$scenario))
-      updateSelectInput(
-        session,
-        "scenario_filter",
-        choices = sort(scenarios),
-        selected = scenarios  # Select all by default
-      )
-    }, error = function(e) {
-      message("Dashboard: Error updating scenario filter: ", e$message)
-    })
+    req(report$ready(), report$report())
+    data <- report$report()
+    req(is.data.frame(data), nrow(data) > 0, "scenario" %in% names(data))
+    scenarios <- unique(as.character(data$scenario))
+    updateSelectInput(
+      session,
+      "scenario_filter",
+      choices = sort(scenarios),
+      selected = scenarios  # Select all by default
+    )
   })
 
   # Update region filter choices when data is loaded
   observe({
-    tryCatch({
-      req(report$ready(), report$report())
-      data <- report$report()
-      req(is.data.frame(data), nrow(data) > 0, "region" %in% names(data))
-      regions <- unique(as.character(data$region))
-      # Default to "World" if available, otherwise first region
-      defaultRegion <- if ("World" %in% regions) "World" else regions[1]
-      updateSelectInput(
-        session,
-        "region_filter",
-        choices = sort(regions),
-        selected = defaultRegion
-      )
-    }, error = function(e) {
-      message("Dashboard: Error updating region filter: ", e$message)
-    })
+    req(report$ready(), report$report())
+    data <- report$report()
+    req(is.data.frame(data), nrow(data) > 0, "region" %in% names(data))
+    regions <- unique(as.character(data$region))
+    # Default to "World" if available, otherwise first region
+    defaultRegion <- if ("World" %in% regions) "World" else regions[1]
+    updateSelectInput(
+      session,
+      "region_filter",
+      choices = sort(regions),
+      selected = defaultRegion
+    )
   })
+
+  # Debounce filter inputs to avoid excessive plot regeneration when quickly changing selections
+  scenarioFilter <- debounce(reactive(input$scenario_filter), 500)
+  regionFilter <- debounce(reactive(input$region_filter), 500)
 
   # Filter data for a specific variable
   # exactMatch: if TRUE, only match the exact variable name (for line plots)
@@ -134,6 +131,9 @@ modDashboard <- function(input, output, session, report, validation, config) {
         vars <- allVariables()
         req(length(vars) > 0, report$ready(), report$report())
 
+        # Wait for filter values to be ready (avoid rendering with NULL filters)
+        req(scenarioFilter(), regionFilter())
+
         # Check if this plot index is within the available variables
         if (i > length(vars)) {
           return(NULL)
@@ -152,8 +152,8 @@ modDashboard <- function(input, output, session, report, validation, config) {
         plotData <- filterDataForVariable(
           report$report(),
           varName,
-          input$scenario_filter,
-          input$region_filter,
+          scenarioFilter(),
+          regionFilter(),
           exactMatch = TRUE
         )
 
@@ -196,7 +196,7 @@ modDashboard <- function(input, output, session, report, validation, config) {
         valData <- NULL
         tryCatch({
           if (!is.null(validation())) {
-            valData <- filterDataForVariable(validation(), varName, NULL, input$region_filter, exactMatch = TRUE)
+            valData <- filterDataForVariable(validation(), varName, NULL, regionFilter(), exactMatch = TRUE)
             # Filter to only include historical data (scenario == "historical")
             if (!is.null(valData) && nrow(valData) > 0 && "scenario" %in% names(valData)) {
               isHistorical <- grepl("^historical$", as.character(valData$scenario), ignore.case = TRUE)
@@ -303,15 +303,21 @@ modDashboard <- function(input, output, session, report, validation, config) {
             }
           }
 
-          # Add MAgPIE projection data
+          # Add MAgPIE projection data with custom hover text
+          plotData$.hover_text <- paste0("Year: ", plotData$period, "<br>Value: ", round(plotData$value, 1))
           p <- p +
-            ggplot2::geom_line(data = plotData, ggplot2::aes(x = period, y = value, color = scenario_clean),
-                               linewidth = 1) +
-            ggplot2::geom_point(data = plotData, ggplot2::aes(x = period, y = value, color = scenario_clean),
-                                size = 2)
+            suppressWarnings(
+              ggplot2::geom_line(data = plotData, ggplot2::aes(x = period, y = value, color = scenario_clean),
+                                 linewidth = 1)
+            ) +
+            suppressWarnings(
+              ggplot2::geom_point(data = plotData, ggplot2::aes(x = period, y = value, color = scenario_clean,
+                                                                 text = .data$.hover_text),
+                                  size = 2)
+            )
 
           # Convert to plotly and clean trace names
-          pl <- ggplotly(p)
+          pl <- ggplotly(p, tooltip = "text")
 
           # Clean trace names in plotly object
           for (i in seq_along(pl$x$data)) {
@@ -324,6 +330,7 @@ modDashboard <- function(input, output, session, report, validation, config) {
           }
 
           plotly::layout(pl,
+            hovermode = "x",
             legend = list(
               orientation = "h",
               yanchor = "top",
@@ -350,6 +357,9 @@ modDashboard <- function(input, output, session, report, validation, config) {
         vars <- allVariables()
         req(length(vars) > 0, report$ready(), report$report())
 
+        # Wait for filter values to be ready (avoid rendering with NULL filters)
+        req(scenarioFilter(), regionFilter())
+
         # Check if this plot index is within the available variables
         if (i > length(vars)) {
           return(NULL)
@@ -369,8 +379,8 @@ modDashboard <- function(input, output, session, report, validation, config) {
           filterDataForVariable(
             report$report(),
             varName,
-            input$scenario_filter,
-            input$region_filter,
+            scenarioFilter(),
+            regionFilter(),
             directChildrenOnly = TRUE
           )
         }, error = function(e) {

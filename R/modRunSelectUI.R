@@ -14,5 +14,7 @@ modRunSelectUI <- function(id) {
            uiOutput(ns("loaded_runs_info")),
            modFilterUI(ns("runfilter")),
            tags$hr(),
+           checkboxInput(ns("include_folder"), "Include folder name in scenario", value = FALSE),
+           checkboxInput(ns("shorten_names"), "Shorten identical parts of scenario names", value = FALSE),
            actionButton(ns("load"), "Load selection"))
 }

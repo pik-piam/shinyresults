@@ -8,7 +8,8 @@
 #' @author Jan Philipp Dietrich
 #' @importFrom shiny fluidPage sidebarLayout sidebarPanel selectInput shinyApp renderPlot mainPanel plotOutput column actionButton reactive removeUI
 #' reactiveValues observeEvent insertUI tags fluidRow sliderInput titlePanel radioButtons textOutput renderText updateSelectInput callModule
-#' @importFrom ggplot2 ggplot theme geom_point aes_string
+#' @importFrom ggplot2 ggplot theme geom_point aes
+#' @importFrom rlang .data
 #' @export
 
 
@@ -88,10 +89,12 @@ appModelstats <- function(files=c("https://www.pik-potsdam.de/rd3mod/magpie.rds"
         theme <- mip::theme_mip(size=14)
       }
 
+      yVar <- cset(input$yaxis, x$variables)
+      xVar <- cset(input$xaxis, x$variables)
+      colorVar <- cset(input$color, x$variables)
       ggplot2::ggplot(selection()$x) + ggplot2::theme(legend.direction="vertical") +
-        ggplot2::geom_point(ggplot2::aes_string(y=cset(input$yaxis,x$variables),
-                                                x=cset(input$xaxis,x$variables),
-                                                color=cset(input$color,x$variables)),size=5, na.rm=TRUE) +
+        ggplot2::geom_point(ggplot2::aes(y = .data[[yVar]], x = .data[[xVar]], color = .data[[colorVar]]),
+                           size=5, na.rm=TRUE) +
         theme
     }, height=700)
   }

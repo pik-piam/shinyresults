@@ -13,7 +13,8 @@ modRunSelect(
   username = NULL,
   password = NULL,
   readFilePar = FALSE,
-  restoreIds = NULL
+  restoreIds = NULL,
+  lassoIds = NULL
 )
 }
 \arguments{
@@ -32,6 +33,8 @@ File must come with a overview list called "files"}
 \item{readFilePar}{read report data files in parallel (faster) (TRUE) or in sequence (FALSE)}
 
 \item{restoreIds}{reactive containing run IDs to restore from a bookmarked URL (optional)}
+
+\item{lassoIds}{reactive containing run IDs selected via lasso/box selection on the stats plot (optional)}
 }
 \value{
 a reactive containing a merged data.frame containing results of selected runs

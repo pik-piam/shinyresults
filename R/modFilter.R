@@ -48,8 +48,12 @@ modFilter <- function(input, # nolint: cyclocomp_linter.
     for (f in filter) {
       slf <- paste0("slider", f)
       if (!is.null(input[[slf]])) {
-        slmax <- max(data[[f]], na.rm = TRUE)
-        slmin <- min(data[[f]], na.rm = TRUE)
+        # Skip if no valid data for this filter
+        validData <- data[[f]][!is.na(data[[f]])]
+        if (length(validData) == 0) next
+
+        slmax <- max(validData)
+        slmin <- min(validData)
         if (x[[slf]]["max"] != slmax || x[[slf]]["min"] != slmin) {
           updateSliderInput(session, slf,
             min = slmin - 60, max = slmax + 60,
@@ -78,20 +82,28 @@ modFilter <- function(input, # nolint: cyclocomp_linter.
       } else {
         sf <- paste0("select", f)
         if (!is.null(input[[sf]])) {
-          slchoices <- data[[f]]
-          if (!setequal(slchoices, x[[sf]])) {
-            updateSelectInput(session, sf, choices = slchoices, selected = input[[sf]])
+          # Get unique sorted choices, dropping unused factor levels
+          slchoices <- sort(unique(as.character(data[[f]])))
+          # Compute valid selection (intersection of current selection and available choices)
+          validSelected <- intersect(input[[sf]], slchoices)
+          if (length(validSelected) == 0) validSelected <- NULL
+          # Update UI if there are choices and they've changed
+          if (length(slchoices) > 0 && !setequal(slchoices, x[[sf]])) {
+            updateSelectizeInput(session, sf, choices = slchoices, selected = validSelected)
             x[[sf]] <- slchoices
           }
           tmp2 <- function(data, f, selection) {
+            # If selection is empty, don't filter - include all available values
+            if (length(selection) == 0) return(data)
             fvec <- (data[[f]] %in% selection)
             fvec[is.na(fvec)] <- FALSE
             return(data[fvec, ])
           }
-          data <- tmp2(data, f, input[[sf]])
+          # Use validSelected for filtering (not input which may have invalid values)
+          data <- tmp2(data, f, validSelected)
           if (!(f %in% xdataExclude)) {
             for (n in names(xdata)) {
-              xdata[[n]] <- tmp2(xdata[[n]], f, input[[sf]])
+              xdata[[n]] <- tmp2(xdata[[n]], f, validSelected)
             }
           }
         }
@@ -158,15 +170,19 @@ modFilter <- function(input, # nolint: cyclocomp_linter.
       } else {
         selected <- NULL
       }
+      # Suppress warning about large number of options - we use maxOptions to handle this
       return(tags$div(
         id = session$ns(paste0("div", filter)),
-        selectInput(
-          inputId = session$ns(id),
-          label = filter,
-          choices = choices,
-          selected = selected,
-          multiple = multiple
-        )#, "display:inline"
+        suppressWarnings(
+          selectizeInput(
+            inputId = session$ns(id),
+            label = filter,
+            choices = choices,
+            selected = selected,
+            multiple = multiple,
+            options = list(maxOptions = 5000, maxItems = if (multiple) 1000 else 1)
+          )
+        )
       ))
     }
   }
