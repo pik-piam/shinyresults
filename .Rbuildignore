@@ -11,3 +11,4 @@
 ^tests/.lintr$
 ^.*CITATION.cff$
 ^\.claude$
+^_pkgdown\.yml$

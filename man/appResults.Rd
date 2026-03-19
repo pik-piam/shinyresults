@@ -29,7 +29,8 @@ appResults(
            resultsfolder - folder in which model results are stored in rds format.
            valfile - validation data. Can be a CSV/MIF file or rds file with a quitte object
                      (saved with saveRDS). NULL by default; in this case the user can upload
-                     files directly in the tool.
+                     files directly in the tool. Can also be a named character vector of
+                     multiple validation files.
            username - username to access "file" and "resultsfolder".
            password - password to access "file" and "resultsfolder".}
 
