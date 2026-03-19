@@ -21,7 +21,7 @@
 #' }
 loadVariableConfig <- function(configFile = NULL) {
   # Priority order for config locations
-candidates <- c(
+  candidates <- c(
     configFile,
     file.path(Sys.getenv("HOME"), ".shinyresults", "variables.yaml"),
     system.file("extdata", "variables_default.yaml", package = "shinyresults")
