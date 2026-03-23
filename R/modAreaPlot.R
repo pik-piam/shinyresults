@@ -4,12 +4,15 @@
 #'
 #' @param input,output,session Default input, output and session objects coming from shiny
 #' @param report A reactive containing the report to be visualized
+#' @param selectionSets named list of selection sets per filter column (passed to \code{\link{modFilter}}).
+#' Defaults to the \code{selectionSets} entry of the active \code{appResults} option.
 #' @author Jan Philipp Dietrich, Florian Humpenoeder
 #' @seealso \code{\link{modAreaPlotUI}}, \code{\link{appResults}}
 #' @importFrom data.table as.data.table merge.data.table
 #' @export
 
-modAreaPlot <- function(input, output, session, report) {
+modAreaPlot <- function(input, output, session, report,
+                       selectionSets = getOption("appResults")[[1]]$selectionSets) {
   
   addGroup <- function(report) {
     start <- Sys.time()
@@ -44,7 +47,8 @@ modAreaPlot <- function(input, output, session, report) {
                           showAll      = TRUE, 
                           multiple     = c(group=FALSE),
                           order        = c("group"),
-                          name         = sub("-$","",session$ns('')))
+                          name         = sub("-$","",session$ns('')),
+                          selectionSets = selectionSets)
 
   areaplot <- reactive({
     start <- Sys.time()

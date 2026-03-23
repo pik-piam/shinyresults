@@ -17,6 +17,10 @@
 #' @param name name used to identify the filter in the log
 #' @param preselectYear if provided the year filter will be preselected with this value
 #' @param preselectMinDate if provided the date filter will be preselected with this as lower value
+#' @param selectionSets named list of selection sets per filter column. Each element is a named list
+#' mapping set labels to character vectors of values. When a set is selected, all its member values
+#' are added to the selection. Only sets where all members are present in the data are shown.
+#' Example: \code{list(region = list("All EUR regions" = c("EUC", "EUS", "EUW", "DEU")))}
 #' @return  a reactive list with x as the filtered data and xdata containing the list of additional,
 #' filtered data element.
 #' @author Jan Philipp Dietrich
@@ -28,7 +32,8 @@
 modFilter <- function(input, # nolint: cyclocomp_linter.
                       output, session, data, exclude = NULL, showAll = FALSE,
                       multiple = NULL, xdata = NULL, xdataExclude = NULL, order = NULL,
-                      name = NULL, preselectYear = NULL, preselectMinDate = NULL) {
+                      name = NULL, preselectYear = NULL, preselectMinDate = NULL,
+                      selectionSets = NULL) {
 
   if (!is.null(name)) name <- paste0(".:|", name, "|:. ")
 
@@ -37,6 +42,28 @@ modFilter <- function(input, # nolint: cyclocomp_linter.
   x <- reactiveValues()
   x$initialized <- FALSE
   x$activefilter <- NULL
+
+  # Build grouped choices for selectize dropdown, adding selection sets as an optgroup
+  augmentChoices <- function(choices, filter, selectionSets) {
+    sets <- selectionSets[[filter]]
+    if (is.null(sets)) return(choices)
+    # Only include sets where ALL members are present in current choices
+    validSets <- Filter(function(members) all(members %in% choices), sets)
+    if (length(validSets) == 0) return(choices)
+    setChoices <- stats::setNames(paste0("__SET__", names(validSets)), names(validSets))
+    structure(list(Values = choices, "Selection Sets" = setChoices), class = "list")
+  }
+
+  # Expand __SET__ entries in a selection to their member values
+  expandSets <- function(selected, filter, selectionSets) {
+    sets <- selectionSets[[filter]]
+    if (is.null(sets) || is.null(selected)) return(selected)
+    isSet <- grepl("^__SET__", selected)
+    if (!any(isSet)) return(selected)
+    setNames <- sub("^__SET__", "", selected[isSet])
+    expanded <- unlist(sets[setNames], use.names = FALSE)
+    unique(c(selected[!isSet], expanded))
+  }
 
   selectdata <- function(data, input, filter, xdata, xdataExclude) {
     start <- Sys.time()
@@ -84,12 +111,16 @@ modFilter <- function(input, # nolint: cyclocomp_linter.
         if (!is.null(input[[sf]])) {
           # Get unique sorted choices, dropping unused factor levels
           slchoices <- sort(unique(as.character(data[[f]])))
-          # Compute valid selection (intersection of current selection and available choices)
-          validSelected <- intersect(input[[sf]], slchoices)
+          # Expand any selection set entries to their member values
+          rawSelected <- expandSets(input[[sf]], f, selectionSets)
+          # Compute valid selection (intersection of expanded selection and available choices)
+          validSelected <- intersect(rawSelected, slchoices)
           if (length(validSelected) == 0) validSelected <- NULL
-          # Update UI if there are choices and they've changed
-          if (length(slchoices) > 0 && !setequal(slchoices, x[[sf]])) {
-            updateSelectizeInput(session, sf, choices = slchoices, selected = validSelected)
+          # Update UI if there are choices, sets were expanded, or choices changed
+          setsExpanded <- any(grepl("^__SET__", input[[sf]]))
+          if (length(slchoices) > 0 && (setsExpanded || !setequal(slchoices, x[[sf]]))) {
+            augmented <- augmentChoices(slchoices, f, selectionSets)
+            updateSelectizeInput(session, sf, choices = augmented, selected = validSelected)
             x[[sf]] <- slchoices
           }
           tmp2 <- function(data, f, selection) {
@@ -116,7 +147,8 @@ modFilter <- function(input, # nolint: cyclocomp_linter.
     return(out)
   }
 
-  selectUI <- function(session, filter, data, class, multiple, preselectYear, preselectMinDate) {
+  selectUI <- function(session, filter, data, class, multiple, preselectYear, preselectMinDate,
+                       selectionSets = NULL) {
     if (filter == "") {
       return(NULL)
     }
@@ -170,6 +202,7 @@ modFilter <- function(input, # nolint: cyclocomp_linter.
       } else {
         selected <- NULL
       }
+      augmented <- augmentChoices(choices, filter, selectionSets)
       # Suppress warning about large number of options - we use maxOptions to handle this
       return(tags$div(
         id = session$ns(paste0("div", filter)),
@@ -177,7 +210,7 @@ modFilter <- function(input, # nolint: cyclocomp_linter.
           selectizeInput(
             inputId = session$ns(id),
             label = filter,
-            choices = choices,
+            choices = augmented,
             selected = selected,
             multiple = multiple,
             options = list(maxOptions = 5000, maxItems = if (multiple) 1000 else 1)
@@ -188,7 +221,8 @@ modFilter <- function(input, # nolint: cyclocomp_linter.
   }
 
 
-  initialize <- function(input, session, data, x, exclude, order, multiple, showAll, preselectYear, preselectMinDate) {
+  initialize <- function(input, session, data, x, exclude, order, multiple, showAll, preselectYear, preselectMinDate,
+                         selectionSets) {
 
     if (!is.null(data())) {
       start <- Sys.time()
@@ -229,7 +263,7 @@ modFilter <- function(input, # nolint: cyclocomp_linter.
         removeUI(selector = paste0("#", session$ns("filterselector")))
         tmpfunc <- function(xf, x) {
           return(selectUI(session, xf, x$data[[xf]], x$filterclass[xf], x$filtermultiple[xf],
-                          preselectYear, preselectMinDate))
+                          preselectYear, preselectMinDate, selectionSets))
         }
         uiList <- lapply(x$filter, tmpfunc, x)
         output$moreFilters <- renderUI(tagList(uiList))
@@ -241,7 +275,7 @@ modFilter <- function(input, # nolint: cyclocomp_linter.
             selector = paste0("#", session$ns("filterend")),
             where = "beforeBegin",
             ui = selectUI(session, "year", x$data[["year"]],  x$filterclass["year"], x$filtermultiple["year"],
-                          preselectYear, preselectMinDate)
+                          preselectYear, preselectMinDate, selectionSets)
           )
 
           x$activefilter <- c(x$activefilter, c("year"))
@@ -251,7 +285,7 @@ modFilter <- function(input, # nolint: cyclocomp_linter.
             selector = paste0("#", session$ns("filterend")),
             where = "beforeBegin",
             ui = selectUI(session, input$filter, x$data[[input$filter]], x$filterclass[input$filter],
-                          x$filtermultiple[input$filter], preselectYear, preselectMinDate)
+                          x$filtermultiple[input$filter], preselectYear, preselectMinDate, selectionSets)
           )
           x$activefilter <- c(x$activefilter, input$filter)
         }
@@ -261,13 +295,13 @@ modFilter <- function(input, # nolint: cyclocomp_linter.
     }
   }
 
-  updatefilter <- function(input, x, preselectYear, preselectMinDate) {
+  updatefilter <- function(input, x, preselectYear, preselectMinDate, selectionSets) {
     if (!(input$filter %in% x$activefilter)) {
       insertUI(
         selector = paste0("#", session$ns("filterend")),
         where = "beforeBegin",
         ui = selectUI(session, input$filter, x$out$x[[input$filter]], x$filterclass[input$filter],
-                      x$filtermultiple[input$filter], preselectYear, preselectMinDate)
+                      x$filtermultiple[input$filter], preselectYear, preselectMinDate, selectionSets)
       )
       x$activefilter <- c(x$activefilter, input$filter)
     }
@@ -291,14 +325,15 @@ modFilter <- function(input, # nolint: cyclocomp_linter.
 
 
   observeEvent(data(), {
-    initialize(input, session, data, x, exclude, order, multiple, showAll, preselectYear, preselectMinDate)
+    initialize(input, session, data, x, exclude, order, multiple, showAll, preselectYear, preselectMinDate,
+               selectionSets)
   })
 
   observe({
     x$out <- selectdata(data(), input, x$activefilter, xdata, xdataExclude)
   })
 
-  observeEvent(input$filter, if (!showAll) updatefilter(input, x, preselectYear, preselectMinDate))
+  observeEvent(input$filter, if (!showAll) updatefilter(input, x, preselectYear, preselectMinDate, selectionSets))
 
   output$observations <- renderText(paste0(dim(x$out$x)[1], " observations"))
 

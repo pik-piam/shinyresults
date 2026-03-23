@@ -5,13 +5,16 @@
 #' @param input,output,session Default input, output and session objects coming from shiny
 #' @param report A reactive containing the report to be visualized
 #' @param validation A reactive containing validation data to be shown
+#' @param selectionSets named list of selection sets per filter column (passed to \code{\link{modFilter}}).
+#' Defaults to the \code{selectionSets} entry of the active \code{appResults} option.
 #' @author Florian Humpenoeder, Jan Philipp Dietrich
 #' @seealso \code{\link{modLinePlotUI}}, \code{\link{appResults}}
 #' @importFrom ggplot2 ggplot theme_void annotate
 #' @importFrom shiny renderCachedPlot observeEvent updateSelectInput
 #' @export
 
-modLinePlot <- function(input, output, session, report, validation) {
+modLinePlot <- function(input, output, session, report, validation,
+                       selectionSets = getOption("appResults")[[1]]$selectionSets) {
 
   # Quick variable selection handler
   observeEvent(input$quick_select, {
@@ -22,7 +25,7 @@ modLinePlot <- function(input, output, session, report, validation) {
   }, ignoreInit = TRUE)
 
   reduceVariables <- function(x) {
-    if(!is.null(levels(x$variable))) levels(x$variable) <- gsub("\\|\\++\\|","|",levels(x$variable))
+  if(!is.null(levels(x$variable))) levels(x$variable) <- gsub("\\|\\++\\|","|",levels(x$variable))
     return(x)
   }
   
@@ -34,8 +37,8 @@ modLinePlot <- function(input, output, session, report, validation) {
                           xdata        = list(validation=validation()),
                           xdataExclude = c("scenario","period"),
                           order        = c("variable"),
-                          name         = sub("-$","",session$ns('')))
-                        
+                          name         = sub("-$","",session$ns('')),
+                          selectionSets = selectionSets)
 
   lineplot <- reactive({
     start <- Sys.time()
