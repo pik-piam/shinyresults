@@ -43,6 +43,9 @@ modFilter <- function(input, # nolint: cyclocomp_linter.
   x$initialized <- FALSE
   x$activefilter <- NULL
 
+  # The following two functions implement the logic to convert between a list of raw choices
+  # and an augmented list that includes raw choices and selection sets.
+
   # Build grouped choices for selectize dropdown, adding selection sets as an optgroup
   augmentChoices <- function(choices, filter, selectionSets) {
     sets <- selectionSets[[filter]]
@@ -51,10 +54,11 @@ modFilter <- function(input, # nolint: cyclocomp_linter.
     validSets <- Filter(function(members) all(members %in% choices), sets)
     if (length(validSets) == 0) return(choices)
     setChoices <- stats::setNames(paste0("__SET__", names(validSets)), names(validSets))
-    structure(list(Values = choices, "Selection Sets" = setChoices), class = "list")
+    return(list(Values = choices, "Selection Sets" = setChoices))
   }
 
-  # Expand __SET__ entries in a selection to their member values
+  # When a selection set was selected, expand __SET__ entries in a selection to their
+  # member values
   expandSets <- function(selected, filter, selectionSets) {
     sets <- selectionSets[[filter]]
     if (is.null(sets) || is.null(selected)) return(selected)
@@ -62,7 +66,7 @@ modFilter <- function(input, # nolint: cyclocomp_linter.
     if (!any(isSet)) return(selected)
     setNames <- sub("^__SET__", "", selected[isSet])
     expanded <- unlist(sets[setNames], use.names = FALSE)
-    unique(c(selected[!isSet], expanded))
+    return(unique(c(selected[!isSet], expanded)))
   }
 
   selectdata <- function(data, input, filter, xdata, xdataExclude) {
