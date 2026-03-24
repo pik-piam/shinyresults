@@ -2,18 +2,20 @@
 #'
 #' Shiny module which works together with \code{\link{modAreaPlotUI}} to produce an area plot tab
 #'
-#' @param input,output,session Default input, output and session objects coming from shiny
+#' @param id Module ID string, must match the id used in \code{\link{modAreaPlotUI}}
 #' @param report A reactive containing the report to be visualized
 #' @param selectionSets named list of selection sets per filter column (passed to \code{\link{modFilter}}).
 #' Defaults to the \code{selectionSets} entry of the active \code{appResults} option.
 #' @author Jan Philipp Dietrich, Florian Humpenoeder
 #' @seealso \code{\link{modAreaPlotUI}}, \code{\link{appResults}}
+#' @importFrom shiny moduleServer
 #' @importFrom data.table as.data.table merge.data.table
 #' @export
 
-modAreaPlot <- function(input, output, session, report,
-                        selectionSets = getOption("appResults")[[1]]$selectionSets) {
-
+modAreaPlot <- function(id, report,
+                       selectionSets = getOption("appResults")[[1]]$selectionSets) {
+  moduleServer(id, function(input, output, session) {
+  
   addGroup <- function(report) {
     start <- Sys.time()
     if(is.null(report)) return(NULL)
@@ -40,8 +42,8 @@ modAreaPlot <- function(input, output, session, report,
     }
     return(gp)
   }
-
-  selection <- callModule(modFilter, "runfilter",
+  
+  selection <- modFilter("runfilter",
                           data         = reactive(addGroup(report$report())), 
                           exclude      = c("variable","value","unit"), 
                           showAll      = TRUE, 
@@ -76,7 +78,5 @@ modAreaPlot <- function(input, output, session, report,
 
   return(renderPlotly({
     sanitizeAreaPlot(areaplot())}))
-
-  # return(renderCachedPlot(areaplot(), res = 120,
-  #                         cacheKeyExpr = { list(selection(), input$transpose_grid, input$plus_size) }))
+  })
 }

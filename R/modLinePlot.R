@@ -2,7 +2,7 @@
 #'
 #' Shiny module which works together with \code{\link{modLinePlotUI}} to produce a line plot tab
 #'
-#' @param input,output,session Default input, output and session objects coming from shiny
+#' @param id Module ID string, must match the id used in \code{\link{modLinePlotUI}}
 #' @param report A reactive containing the report to be visualized
 #' @param validation A reactive containing validation data to be shown
 #' @param selectionSets named list of selection sets per filter column (passed to \code{\link{modFilter}}).
@@ -10,11 +10,12 @@
 #' @author Florian Humpenoeder, Jan Philipp Dietrich
 #' @seealso \code{\link{modLinePlotUI}}, \code{\link{appResults}}
 #' @importFrom ggplot2 ggplot theme_void annotate
-#' @importFrom shiny renderCachedPlot observeEvent updateSelectInput
+#' @importFrom shiny moduleServer renderCachedPlot observeEvent updateSelectInput
 #' @export
 
-modLinePlot <- function(input, output, session, report, validation,
-                        selectionSets = getOption("appResults")[[1]]$selectionSets) {
+modLinePlot <- function(id, report, validation,
+                       selectionSets = getOption("appResults")[[1]]$selectionSets) {
+  moduleServer(id, function(input, output, session) {
 
   # Quick variable selection handler
   observeEvent(input$quick_select, {
@@ -28,8 +29,8 @@ modLinePlot <- function(input, output, session, report, validation,
     if(!is.null(levels(x$variable))) levels(x$variable) <- gsub("\\|\\++\\|","|",levels(x$variable))
     return(x)
   }
-
-  selection <- callModule(modFilter, "runfilter",
+  
+  selection <- modFilter("runfilter",
                           data         = report$report,
                           exclude      = c("value","unit"), 
                           showAll      = TRUE, 
@@ -123,5 +124,5 @@ modLinePlot <- function(input, output, session, report, validation,
 
   return(renderCachedPlot(lineplot(), res = 120,
                           cacheKeyExpr = { list(selection(), input$show_hist, input$show_proj, input$free_y, input$auto_y, input$legend_right) }))
-
+  })
 }

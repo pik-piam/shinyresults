@@ -2,7 +2,7 @@
 #'
 #' Shiny module which works together with \code{\link{modFilterUI}} to filter a data set based on user input
 #'
-#' @param input,output,session Default input, output and session objects coming from shiny
+#' @param id Module ID string, must match the id used in \code{\link{modFilterUI}}
 #' @param data A reactive returning a data.table with observations in rows and filter options in columns
 #' @param exclude names of columns that should be not used as filter
 #' @param showAll FALSE | If set to TRUE all available filter are shown and the filter selector is hidden
@@ -25,15 +25,16 @@
 #' filtered data element.
 #' @author Jan Philipp Dietrich
 #' @seealso \code{\link{modFilterUI}}, \code{\link{appModelstats}}
-#' @importFrom shiny updateSliderInput debounce
+#' @importFrom shiny moduleServer updateSliderInput debounce
 #' @importFrom data.table uniqueN
 #' @export
 
-modFilter <- function(input, # nolint: cyclocomp_linter.
-                      output, session, data, exclude = NULL, showAll = FALSE,
+modFilter <- function(id, # nolint: cyclocomp_linter.
+                      data, exclude = NULL, showAll = FALSE,
                       multiple = NULL, xdata = NULL, xdataExclude = NULL, order = NULL,
                       name = NULL, preselectYear = NULL, preselectMinDate = NULL,
                       selectionSets = NULL) {
+  moduleServer(id, function(input, output, session) {
 
   if (!is.null(name)) name <- paste0(".:|", name, "|:. ")
 
@@ -342,4 +343,5 @@ modFilter <- function(input, # nolint: cyclocomp_linter.
   output$observations <- renderText(paste0(dim(x$out$x)[1], " observations"))
 
   return(debounce(reactive(x$out), 500))
+  })
 }

@@ -7,7 +7,7 @@
 #' @param resultsfolder path to a folder containing model results of the corresponding runs
 #' @author Jan Philipp Dietrich
 #' @importFrom shiny fluidPage sidebarLayout sidebarPanel selectInput shinyApp renderPlot mainPanel plotOutput column actionButton reactive removeUI
-#' reactiveValues observeEvent insertUI tags fluidRow sliderInput titlePanel radioButtons textOutput renderText updateSelectInput callModule
+#' reactiveValues observeEvent insertUI tags fluidRow sliderInput titlePanel radioButtons textOutput renderText updateSelectInput
 #' @importFrom ggplot2 ggplot theme geom_point aes
 #' @importFrom rlang .data
 #' @export
@@ -74,7 +74,7 @@ appModelstats <- function(files=c("https://www.pik-potsdam.de/rd3mod/magpie.rds"
       updateSelectInput(session, "color",  choices=x$variables, selected = "user")
     })
 
-    selection <- callModule(modFilter,"runfilter",data=reactive(x$data),exclude=".id")
+    selection <- modFilter("runfilter",data=reactive(x$data),exclude=".id")
 
     output$stats <- renderPlot({
       cset <- function(i,check) {

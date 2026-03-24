@@ -5,9 +5,7 @@
 \title{modFilter Module}
 \usage{
 modFilter(
-  input,
-  output,
-  session,
+  id,
   data,
   exclude = NULL,
   showAll = FALSE,
@@ -22,7 +20,7 @@ modFilter(
 )
 }
 \arguments{
-\item{input, output, session}{Default input, output and session objects coming from shiny}
+\item{id}{Module ID string, must match the id used in \code{\link{modFilterUI}}}
 
 \item{data}{A reactive returning a data.table with observations in rows and filter options in columns}
 

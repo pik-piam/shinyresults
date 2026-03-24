@@ -2,7 +2,7 @@
 #'
 #' Corresponding server logic to \code{\link{modRunSelectUI}} to select modules runs for further analysis
 #'
-#' @param input,output,session Default input, output and session objects coming from shiny
+#' @param id Module ID string, must match the id used in \code{\link{modRunSelectUI}}
 #' @param file report data. Can be a CSV/MIF file or rds file with a quitte object (saved with saveRDS).
 #' file can also be a vector of rds files. NULL by default; in this case the user can upload files directly in the tool
 #' @param resultsfolder folder in which MAgPIE run results are stored.
@@ -25,12 +25,14 @@
 #' @importFrom doSNOW registerDoSNOW
 #' @importFrom foreach foreach %dopar%
 #' @importFrom mip shorten_legend
+#' @importFrom shiny moduleServer
 #' @importFrom utils head
 #' @export
 
-modRunSelect <- function(input, output, session, file, resultsfolder,
+modRunSelect <- function(id, file, resultsfolder,
                          username = NULL, password = NULL, readFilePar = FALSE,
                          restoreIds = NULL, lassoIds = NULL) {
+  moduleServer(id, function(input, output, session) {
   readdata <- function(file, username = NULL, password = NULL, addfilename = FALSE) {
     if (grepl("https://", file)) {
       con <- gzcon(curl(file, handle = new_handle(username = username, password = password)))
@@ -177,7 +179,7 @@ modRunSelect <- function(input, output, session, file, resultsfolder,
 
   # preselect last 3 months
   preselectMinDate <- as.POSIXct(Sys.time()) - 3 * 60 * 60 * 24 * 31
-  selection <- callModule(modFilter, "runfilter", data = reactive(data), exclude = ".id", name = "RunSelect",
+  selection <- modFilter("runfilter", data = reactive(data), exclude = ".id", name = "RunSelect",
                           order = "date", preselectYear = preselectYear, preselectMinDate = preselectMinDate)
 
   x <- reactiveValues(rawOut = NULL, ready = FALSE, loadedIds = NULL, folderMapping = NULL)
@@ -309,4 +311,5 @@ modRunSelect <- function(input, output, session, file, resultsfolder,
                detail = "Move on to the next step...",
                value = 10)
   return(out)
+  })
 }

@@ -5,9 +5,7 @@
 \title{modRunSelect Module}
 \usage{
 modRunSelect(
-  input,
-  output,
-  session,
+  id,
   file,
   resultsfolder,
   username = NULL,
@@ -18,7 +16,7 @@ modRunSelect(
 )
 }
 \arguments{
-\item{input, output, session}{Default input, output and session objects coming from shiny}
+\item{id}{Module ID string, must match the id used in \code{\link{modRunSelectUI}}}
 
 \item{file}{report data. Can be a CSV/MIF file or rds file with a quitte object (saved with saveRDS).
 file can also be a vector of rds files. NULL by default; in this case the user can upload files directly in the tool}

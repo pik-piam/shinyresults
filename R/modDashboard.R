@@ -6,7 +6,7 @@ utils::globalVariables(c("period", "label", "value", "scenario_clean", "min", "m
 #' Shiny module which works together with \code{\link{modDashboardUI}} to produce a dashboard
 #' with pre-configured plots based on variable presets.
 #'
-#' @param input,output,session Default input, output and session objects coming from shiny
+#' @param id Module ID string, must match the id used in \code{\link{modDashboardUI}}
 #' @param report A reactive list containing the report data (from modRunSelect)
 #' @param validation A reactive containing validation data to be shown
 #' @param config Variable configuration list from loadVariableConfig()
@@ -15,12 +15,14 @@ utils::globalVariables(c("period", "label", "value", "scenario_clean", "min", "m
 #' @importFrom ggplot2 ggplot theme_void annotate ggsave theme element_text unit guides guide_legend aes geom_line geom_point geom_ribbon labs theme_minimal
 #' @importFrom plotly renderPlotly ggplotly plotlyOutput layout
 #' @importFrom rlang .data
+#' @importFrom shiny moduleServer
 #' @importFrom mip mipLineHistorical mipArea theme_mip
 #' @importFrom data.table as.data.table
 #' @importFrom graphics plot.new text
 #' @importFrom grDevices dev.off pdf png
 #' @export
-modDashboard <- function(input, output, session, report, validation, config) {
+modDashboard <- function(id, report, validation, config) {
+  moduleServer(id, function(input, output, session) {
 
   # Collect ALL variables from ALL presets into a single list
   allVariables <- reactive({
@@ -31,7 +33,7 @@ modDashboard <- function(input, output, session, report, validation, config) {
     vars <- list()
     for (presetName in names(config$presets)) {
       preset <- config$presets[[presetName]]
-      if (!is.null(preset$variables)) {
+      if (!is.null(preset$variables)) { 
         for (v in preset$variables) {
           vars[[length(vars) + 1]] <- v
         }
@@ -566,4 +568,5 @@ modDashboard <- function(input, output, session, report, validation, config) {
     tagList(groupedUI)
   })
 
+  })
 }

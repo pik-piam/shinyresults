@@ -285,13 +285,13 @@ appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, varia
     # Reactive for lasso-selected IDs
     lassoSelectedIds <- reactiveVal(NULL)
 
-    repFull <- callModule(modRunSelect, "select", file = file, resultsfolder = resultsfolder,
+    repFull <- modRunSelect("select", file = file, resultsfolder = resultsfolder,
                           username = username, password = password, readFilePar = readFilePar,
                           restoreIds = restoredRunIds, lassoIds = lassoSelectedIds)
 
     # Initialize Dashboard module (only for MAgPIE)
     if (showDashboard) {
-      callModule(modDashboard, "dashboard", report = repFull, validation = reactive(valFull), config = varConfig)
+      modDashboard("dashboard", report = repFull, validation = reactive(valFull), config = varConfig)
     }
 
     addtab <- function(type = "Line", counter, plot = plotOutput) {
@@ -312,9 +312,9 @@ appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, varia
                   position = "after")
       }
       if (type == "Line") {
-        output[[tabname]] <- callModule(modLinePlot, tabname, report = repFull, validation = reactive(valFull))
+        output[[tabname]] <- modLinePlot(tabname, report = repFull, validation = reactive(valFull))
       } else if (type == "Area") {
-        output[[tabname]] <- callModule(modAreaPlot, tabname, report = repFull)
+        output[[tabname]] <- modAreaPlot(tabname, report = repFull)
       }
     }
 
