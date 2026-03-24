@@ -12,8 +12,8 @@
 #' @export
 
 modAreaPlot <- function(input, output, session, report,
-                       selectionSets = getOption("appResults")[[1]]$selectionSets) {
-  
+                        selectionSets = getOption("appResults")[[1]]$selectionSets) {
+
   addGroup <- function(report) {
     start <- Sys.time()
     if(is.null(report)) return(NULL)
@@ -40,7 +40,7 @@ modAreaPlot <- function(input, output, session, report,
     }
     return(gp)
   }
-  
+
   selection <- callModule(modFilter, "runfilter",
                           data         = reactive(addGroup(report$report())), 
                           exclude      = c("variable","value","unit"), 
@@ -67,7 +67,7 @@ modAreaPlot <- function(input, output, session, report,
     message("done! (",round(as.numeric(Sys.time()-start,units="secs"),2),"s)")
     return(p)
   })
-  
+
   baseFilename <- reactive({
     tmp <- shorten_legend(selection()$x$variable, identical_only = TRUE)
     sub("_+$", "", gsub("\\.+", "_", make.names(attr(tmp, "front"))))
@@ -79,5 +79,4 @@ modAreaPlot <- function(input, output, session, report,
 
   # return(renderCachedPlot(areaplot(), res = 120,
   #                         cacheKeyExpr = { list(selection(), input$transpose_grid, input$plus_size) }))
-  
 }

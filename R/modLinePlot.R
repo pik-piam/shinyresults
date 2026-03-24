@@ -14,7 +14,7 @@
 #' @export
 
 modLinePlot <- function(input, output, session, report, validation,
-                       selectionSets = getOption("appResults")[[1]]$selectionSets) {
+                        selectionSets = getOption("appResults")[[1]]$selectionSets) {
 
   # Quick variable selection handler
   observeEvent(input$quick_select, {
@@ -25,10 +25,10 @@ modLinePlot <- function(input, output, session, report, validation,
   }, ignoreInit = TRUE)
 
   reduceVariables <- function(x) {
-  if(!is.null(levels(x$variable))) levels(x$variable) <- gsub("\\|\\++\\|","|",levels(x$variable))
+    if(!is.null(levels(x$variable))) levels(x$variable) <- gsub("\\|\\++\\|","|",levels(x$variable))
     return(x)
   }
-  
+
   selection <- callModule(modFilter, "runfilter",
                           data         = report$report,
                           exclude      = c("value","unit"), 
@@ -115,7 +115,7 @@ modLinePlot <- function(input, output, session, report, validation,
     message("done! (",round(as.numeric(Sys.time()-start,units="secs"),2),"s)")
     return(p)
   })
-  
+
   baseFilename <- reactive({
     sub("_+$", "", gsub("\\.+", "_", make.names(selection()$x$variable[1])))
   })
@@ -123,5 +123,5 @@ modLinePlot <- function(input, output, session, report, validation,
 
   return(renderCachedPlot(lineplot(), res = 120,
                           cacheKeyExpr = { list(selection(), input$show_hist, input$show_proj, input$free_y, input$auto_y, input$legend_right) }))
-  
+
 }
