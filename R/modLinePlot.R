@@ -116,39 +116,11 @@ modLinePlot <- function(input, output, session, report, validation,
     return(p)
   })
   
-  createFilename <- function(variable,ending) {
-    out <- sub("_+$","",gsub("\\.+","_",make.names(variable[1])))
-    out <- paste0(out,".",ending)
-    return(out)
-  }
-  
-  output$downloadPlotPDF <- downloadHandler(
-    filename = reactive(createFilename(selection()$x$variable,"pdf")),
-    content = function(file) {
-      ggsave(file, plot = lineplot(), device = "pdf",scale=1,width=20,height=18,units="cm",dpi=150)
-    }
-  )
-  output$downloadPlotPNG <- downloadHandler(
-    filename = reactive(createFilename(selection()$x$variable,"png")),
-    content = function(file) {
-      ggsave(file, plot = lineplot(), device = "png",scale=1,width=20,height=18,units="cm",dpi=150)
-    }
-  )
-  
-  output$downloadPlotEPS <- downloadHandler(
-    filename = reactive(createFilename(selection()$x$variable,"eps")),
-    content = function(file) {
-      ggsave(file, plot = lineplot(), device = "eps",scale=1,width=20,height=18,units="cm",dpi=150)
-    }
-  )
-  
-  output$downloadPlotRDS <- downloadHandler(
-    filename = reactive(createFilename(selection()$x$variable,"rds")),
-    content = function(file) {
-      saveRDS(lineplot(),file=file)
-    }
-  )
-  
+  baseFilename <- reactive({
+    sub("_+$", "", gsub("\\.+", "_", make.names(selection()$x$variable[1])))
+  })
+  plotDownloadHandlers(output, lineplot, baseFilename)
+
   return(renderCachedPlot(lineplot(), res = 120,
                           cacheKeyExpr = { list(selection(), input$show_hist, input$show_proj, input$free_y, input$auto_y, input$legend_right) }))
   
