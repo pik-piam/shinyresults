@@ -18,3 +18,4 @@ Shiny module which works together with \code{\link{modAreaPlot}} to produce an a
 \author{
 Florian Humpenoeder, Jan Philipp Dietrich
 }
+\keyword{internal}

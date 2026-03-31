@@ -20,3 +20,4 @@ Creates a shareable URL with the current application state encoded.
 \author{
 Florian Humpenoeder
 }
+\keyword{internal}

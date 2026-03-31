@@ -18,3 +18,4 @@ Encodes the essential application state into a compact JSON string.
 \author{
 Florian Humpenoeder
 }
+\keyword{internal}

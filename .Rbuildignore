@@ -12,3 +12,4 @@
 ^.*CITATION.cff$
 ^\.claude$
 ^_pkgdown\.yml$
+^vignettes/.lintr$

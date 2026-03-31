@@ -23,3 +23,4 @@ Shiny module which works together with \code{\link{modAreaPlotUI}} to produce an
 \author{
 Jan Philipp Dietrich, Florian Humpenoeder
 }
+\keyword{internal}

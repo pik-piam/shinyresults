@@ -18,3 +18,4 @@ Decodes a JSON string back into application state.
 \author{
 Florian Humpenoeder
 }
+\keyword{internal}

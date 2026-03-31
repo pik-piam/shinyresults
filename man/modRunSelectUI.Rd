@@ -18,3 +18,4 @@ Corresponding user interface to \code{\link{modRunSelect}} to select modules run
 \author{
 Jan Philipp Dietrich
 }
+\keyword{internal}

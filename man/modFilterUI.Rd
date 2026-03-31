@@ -18,3 +18,4 @@ Corresponding user interface to \code{\link{modFilter}} to filter a data set bas
 \author{
 Jan Philipp Dietrich
 }
+\keyword{internal}

@@ -18,3 +18,4 @@ Extracts and decodes application state from URL query parameters.
 \author{
 Florian Humpenoeder
 }
+\keyword{internal}

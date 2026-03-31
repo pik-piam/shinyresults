@@ -20,3 +20,4 @@ Shiny module which works together with \code{\link{modLinePlot}} to produce a li
 \author{
 Florian Humpenoeder, Jan Philipp Dietrich
 }
+\keyword{internal}

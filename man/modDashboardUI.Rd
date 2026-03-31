@@ -21,3 +21,4 @@ with pre-configured plots based on variable presets.
 \author{
 Florian Humpenoeder
 }
+\keyword{internal}

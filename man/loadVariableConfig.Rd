@@ -31,3 +31,4 @@ config <- loadVariableConfig("path/to/my_variables.yaml")
 \author{
 Florian Humpenoeder
 }
+\keyword{internal}

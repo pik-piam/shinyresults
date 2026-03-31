@@ -47,7 +47,7 @@ quick-load options in plot tabs. See \code{\link{loadVariableConfig}}.}
 consistent URLs for bookmarking.}
 
 \item{...}{additional information to overwrite one of the settings from the cfg directly:
-file, resultsfolder, valfile, username or password.}
+file, resultsfolder, valfile, username, password, or selectionSets.}
 }
 \description{
 appResults allows to explore and visualize time series of modelling results.

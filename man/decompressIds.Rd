@@ -18,3 +18,4 @@ Decompresses a string back into a vector of IDs.
 \author{
 Florian Humpenoeder
 }
+\keyword{internal}

@@ -25,3 +25,4 @@ Shiny module which works together with \code{\link{modLinePlotUI}} to produce a 
 \author{
 Florian Humpenoeder, Jan Philipp Dietrich
 }
+\keyword{internal}

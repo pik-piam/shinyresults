@@ -25,3 +25,4 @@ shinyresults:::extractVariableGroups(x)
 \author{
 Jan Philipp Dietrich
 }
+\keyword{internal}
