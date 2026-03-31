@@ -4,12 +4,21 @@
 \alias{modAreaPlot}
 \title{modAreaPlot Module}
 \usage{
-modAreaPlot(input, output, session, report)
+modAreaPlot(
+  input,
+  output,
+  session,
+  report,
+  selectionSets = getOption("appResults")[[1]]$selectionSets
+)
 }
 \arguments{
 \item{input, output, session}{Default input, output and session objects coming from shiny}
 
 \item{report}{A reactive containing the report to be visualized}
+
+\item{selectionSets}{named list of selection sets per filter column (passed to \code{\link{modFilter}}).
+Defaults to the \code{selectionSets} entry of the active \code{appResults} option.}
 }
 \description{
 Shiny module which works together with \code{\link{modAreaPlotUI}} to produce an area plot tab
