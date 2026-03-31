@@ -2,7 +2,7 @@ Type: Package
 Package: shinyresults
 Title: A collection of shiny apps and modules to visualize/handle model
     results
-Version: 0.36.2
+Version: 0.37.0
 Date: 2026-03-31
 Authors@R: c(
     person("Jan Philipp", "Dietrich", , "dietrich@pik-potsdam.de", role = c("aut", "cre")),
@@ -36,8 +36,12 @@ Imports:
     yaml
 Suggests:
     covr,
+    knitr,
     lucode2,
-    quitte (>= 0.3072)
+    quitte (>= 0.3072),
+    rmarkdown
 Encoding: UTF-8
 LazyData: no
 RoxygenNote: 7.3.3
+VignetteBuilder: knitr
+Config/Needs/website: tidyverse/tidytemplate

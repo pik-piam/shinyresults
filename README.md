@@ -1,6 +1,6 @@
 # A collection of shiny apps and modules to visualize/handle model results
 
-R package **shinyresults**, version **0.36.2**
+R package **shinyresults**, version **0.37.0**
 
 [![CRAN status](https://www.r-pkg.org/badges/version/shinyresults)](https://cran.r-project.org/package=shinyresults) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1478922.svg)](https://doi.org/10.5281/zenodo.1478922) [![R build status](https://github.com/pik-piam/shinyresults/workflows/check/badge.svg)](https://github.com/pik-piam/shinyresults/actions) [![codecov](https://codecov.io/gh/pik-piam/shinyresults/branch/master/graph/badge.svg)](https://app.codecov.io/gh/pik-piam/shinyresults) [![r-universe](https://pik-piam.r-universe.dev/badges/shinyresults)](https://pik-piam.r-universe.dev/builds)
 
@@ -31,6 +31,14 @@ Package updates can be installed using `update.packages` (make sure that the add
 update.packages()
 ```
 
+## Tutorial
+
+The package comes with a vignette describing the basic functionality of the package and how to use it. You can load it with the following command (the package needs to be installed):
+
+```r
+vignette("configuring-shiny") # configuring-shiny
+```
+
 ## Questions / Problems
 
 In case of questions / problems please contact Jan Philipp Dietrich <dietrich@pik-potsdam.de>.
@@ -39,7 +47,7 @@ In case of questions / problems please contact Jan Philipp Dietrich <dietrich@pi
 
 To cite package **shinyresults** in publications use:
 
-Dietrich J, Humpenoeder F, Sauer P (2026). "shinyresults: A collection of shiny apps and modules to visualize/handle model results." doi:10.5281/zenodo.1478922 <https://doi.org/10.5281/zenodo.1478922>, Version: 0.36.2, <https://github.com/pik-piam/shinyresults>.
+Dietrich J, Humpenoeder F, Sauer P (2026). "shinyresults: A collection of shiny apps and modules to visualize/handle model results." doi:10.5281/zenodo.1478922 <https://doi.org/10.5281/zenodo.1478922>, Version: 0.37.0, <https://github.com/pik-piam/shinyresults>.
 
 A BibTeX entry for LaTeX users is
 
@@ -52,6 +60,6 @@ A BibTeX entry for LaTeX users is
   date = {2026-03-31},
   year = {2026},
   url = {https://github.com/pik-piam/shinyresults},
-  note = {Version: 0.36.2},
+  note = {Version: 0.37.0},
 }
 ```
