@@ -11,7 +11,7 @@
 #' @seealso \code{\link{modLinePlotUI}}, \code{\link{appResults}}
 #' @importFrom ggplot2 ggplot theme_void annotate
 #' @importFrom shiny moduleServer renderCachedPlot observeEvent updateSelectInput
-#' @export
+#' @keywords internal
 
 modLinePlot <- function(id, report, validation, selectionSets = NULL) {
   moduleServer(id, function(input, output, session) {

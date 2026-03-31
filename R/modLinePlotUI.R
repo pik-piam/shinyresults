@@ -6,7 +6,7 @@
 #' @param presets Optional list of presets for quick variable selection
 #' @author Florian Humpenoeder, Jan Philipp Dietrich
 #' @seealso \code{\link{modLinePlot}}, \code{\link{appResults}}
-#' @export
+#' @keywords internal
 
 modLinePlotUI <- function(id, presets = NULL) {
   ns <- NS(id)

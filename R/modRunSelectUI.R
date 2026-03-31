@@ -6,7 +6,7 @@
 #' @author Jan Philipp Dietrich
 #' @seealso \code{\link{modFilter}}, \code{\link{appModelstats}}
 #' @importFrom shiny NS uiOutput
-#' @export
+#' @keywords internal
 modRunSelectUI <- function(id) {
   ns <- NS(id)
   tags$div(id = ns("runselectbox"),

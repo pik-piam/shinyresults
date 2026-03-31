@@ -7,7 +7,7 @@
 #' @param presets Named list of presets from variable configuration (not used, kept for compatibility)
 #' @author Florian Humpenoeder
 #' @seealso \code{\link{modDashboard}}, \code{\link{appResults}}, \code{\link{loadVariableConfig}}
-#' @export
+#' @keywords internal
 modDashboardUI <- function(id, presets = NULL) {
   ns <- NS(id)
 

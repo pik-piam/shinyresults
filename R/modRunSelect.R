@@ -27,7 +27,7 @@
 #' @importFrom mip shorten_legend
 #' @importFrom shiny moduleServer
 #' @importFrom utils head
-#' @export
+#' @keywords internal
 
 modRunSelect <- function(id, file, resultsfolder,
                          username = NULL, password = NULL, readFilePar = FALSE,

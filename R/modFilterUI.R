@@ -6,7 +6,7 @@
 #' @author Jan Philipp Dietrich
 #' @seealso \code{\link{modFilter}}, \code{\link{appModelstats}}
 #' @importFrom shiny NS
-#' @export
+#' @keywords internal
 
 modFilterUI <- function(id) {
   ns <- NS(id)

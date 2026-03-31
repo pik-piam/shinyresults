@@ -10,7 +10,7 @@
 #' @return List containing variable configuration with presets, key_variables, and defaults
 #' @author Florian Humpenoeder
 #' @importFrom yaml read_yaml
-#' @export
+#' @keywords internal
 #' @examples
 #' \dontrun{
 #' # Load default configuration

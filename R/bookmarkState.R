@@ -16,7 +16,7 @@ NULL
 #' @return Compressed string representation of IDs
 #' @author Florian Humpenoeder
 #' @importFrom base64enc base64encode
-#' @export
+#' @keywords internal
 compressIds <- function(ids) {
   if (length(ids) == 0) return("")
 
@@ -39,7 +39,7 @@ compressIds <- function(ids) {
 #' @return Vector of numeric IDs
 #' @author Florian Humpenoeder
 #' @importFrom base64enc base64decode
-#' @export
+#' @keywords internal
 decompressIds <- function(str) {
   if (is.null(str) || str == "") return(character(0))
 
@@ -74,7 +74,7 @@ decompressIds <- function(str) {
 #' @return JSON string representation of state
 #' @author Florian Humpenoeder
 #' @importFrom base64enc base64encode
-#' @export
+#' @keywords internal
 encodeAppState <- function(state) {
   # Only encode essential state to keep URL short
   essential <- list(
@@ -111,7 +111,7 @@ encodeAppState <- function(state) {
 #' @return List containing application state
 #' @author Florian Humpenoeder
 #' @importFrom base64enc base64decode
-#' @export
+#' @keywords internal
 decodeAppState <- function(str) {
   if (is.null(str) || str == "") {
     return(list())
@@ -148,7 +148,7 @@ decodeAppState <- function(str) {
 #' @param state List containing application state to bookmark
 #' @return Full URL string with state encoded in query parameters
 #' @author Florian Humpenoeder
-#' @export
+#' @keywords internal
 createBookmarkUrl <- function(session, state) {
   # Get base URL
   baseUrl <- session$clientData$url_protocol
@@ -181,7 +181,7 @@ createBookmarkUrl <- function(session, state) {
 #' @param session Shiny session object
 #' @return List containing decoded application state, or empty list if none
 #' @author Florian Humpenoeder
-#' @export
+#' @keywords internal
 parseBookmarkUrl <- function(session) {
   query <- shiny::parseQueryString(session$clientData$url_search)
 

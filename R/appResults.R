@@ -31,7 +31,7 @@
 #' @param port Port number for the Shiny app (default: 3838). Using a fixed port allows
 #'             consistent URLs for bookmarking.
 #' @param ... additional information to overwrite one of the settings from the cfg directly:
-#'            file, resultsfolder, valfile, username or password.
+#'            file, resultsfolder, valfile, username, password, or selectionSets.
 #' @author Florian Humpenoeder, Jan Philipp Dietrich, Lavinia Baumstark, Pascal Sauer
 #' @importFrom shiny tagList div insertTab reactiveValues reactiveVal observeEvent updateTextInput
 #' observe updateSelectInput reactive hoverOpts uiOutput sliderInput icon actionButton

@@ -10,7 +10,7 @@
 #' @seealso \code{\link{modAreaPlotUI}}, \code{\link{appResults}}
 #' @importFrom shiny moduleServer
 #' @importFrom data.table as.data.table merge.data.table
-#' @export
+#' @keywords internal
 
 modAreaPlot <- function(id, report, selectionSets = NULL) {
   moduleServer(id, function(input, output, session) {

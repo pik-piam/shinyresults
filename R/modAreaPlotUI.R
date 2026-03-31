@@ -5,7 +5,7 @@
 #' @param id id of the filter
 #' @author Florian Humpenoeder, Jan Philipp Dietrich
 #' @seealso \code{\link{modAreaPlot}}, \code{\link{appResults}}
-#' @export
+#' @keywords internal
 
 modAreaPlotUI <- function(id) {
   ns <- NS(id)

@@ -20,7 +20,7 @@ utils::globalVariables(c("period", "label", "value", "scenario_clean", "min", "m
 #' @importFrom data.table as.data.table
 #' @importFrom graphics plot.new text
 #' @importFrom grDevices dev.off pdf png
-#' @export
+#' @keywords internal
 modDashboard <- function(id, report, validation, config) {
   moduleServer(id, function(input, output, session) {
 

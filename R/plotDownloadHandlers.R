@@ -8,6 +8,7 @@
 #' @param plotReactive A reactive expression returning the ggplot object
 #' @param baseFilenameReactive A reactive expression returning the base filename (without extension)
 #' @importFrom ggplot2 ggsave
+#' @keywords internal
 #' @noRd
 plotDownloadHandlers <- function(output, plotReactive, baseFilenameReactive) {
 
