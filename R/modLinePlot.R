@@ -5,13 +5,16 @@
 #' @param input,output,session Default input, output and session objects coming from shiny
 #' @param report A reactive containing the report to be visualized
 #' @param validation A reactive containing validation data to be shown
+#' @param selectionSets named list of selection sets per filter column (passed to \code{\link{modFilter}}).
+#' Defaults to the \code{selectionSets} entry of the active \code{appResults} option.
 #' @author Florian Humpenoeder, Jan Philipp Dietrich
 #' @seealso \code{\link{modLinePlotUI}}, \code{\link{appResults}}
 #' @importFrom ggplot2 ggplot theme_void annotate
 #' @importFrom shiny renderCachedPlot observeEvent updateSelectInput
 #' @export
 
-modLinePlot <- function(input, output, session, report, validation) {
+modLinePlot <- function(input, output, session, report, validation,
+                        selectionSets = getOption("appResults")[[1]]$selectionSets) {
 
   # Quick variable selection handler
   observeEvent(input$quick_select, {
@@ -25,7 +28,7 @@ modLinePlot <- function(input, output, session, report, validation) {
     if(!is.null(levels(x$variable))) levels(x$variable) <- gsub("\\|\\++\\|","|",levels(x$variable))
     return(x)
   }
-  
+
   selection <- callModule(modFilter, "runfilter",
                           data         = report$report,
                           exclude      = c("value","unit"), 
@@ -34,8 +37,8 @@ modLinePlot <- function(input, output, session, report, validation) {
                           xdata        = list(validation=validation()),
                           xdataExclude = c("scenario","period"),
                           order        = c("variable"),
-                          name         = sub("-$","",session$ns('')))
-                        
+                          name         = sub("-$","",session$ns('')),
+                          selectionSets = selectionSets)
 
   lineplot <- reactive({
     start <- Sys.time()
@@ -112,41 +115,13 @@ modLinePlot <- function(input, output, session, report, validation) {
     message("done! (",round(as.numeric(Sys.time()-start,units="secs"),2),"s)")
     return(p)
   })
-  
-  createFilename <- function(variable,ending) {
-    out <- sub("_+$","",gsub("\\.+","_",make.names(variable[1])))
-    out <- paste0(out,".",ending)
-    return(out)
-  }
-  
-  output$downloadPlotPDF <- downloadHandler(
-    filename = reactive(createFilename(selection()$x$variable,"pdf")),
-    content = function(file) {
-      ggsave(file, plot = lineplot(), device = "pdf",scale=1,width=20,height=18,units="cm",dpi=150)
-    }
-  )
-  output$downloadPlotPNG <- downloadHandler(
-    filename = reactive(createFilename(selection()$x$variable,"png")),
-    content = function(file) {
-      ggsave(file, plot = lineplot(), device = "png",scale=1,width=20,height=18,units="cm",dpi=150)
-    }
-  )
-  
-  output$downloadPlotEPS <- downloadHandler(
-    filename = reactive(createFilename(selection()$x$variable,"eps")),
-    content = function(file) {
-      ggsave(file, plot = lineplot(), device = "eps",scale=1,width=20,height=18,units="cm",dpi=150)
-    }
-  )
-  
-  output$downloadPlotRDS <- downloadHandler(
-    filename = reactive(createFilename(selection()$x$variable,"rds")),
-    content = function(file) {
-      saveRDS(lineplot(),file=file)
-    }
-  )
-  
+
+  baseFilename <- reactive({
+    sub("_+$", "", gsub("\\.+", "_", make.names(selection()$x$variable[1])))
+  })
+  plotDownloadHandlers(output, lineplot, baseFilename)
+
   return(renderCachedPlot(lineplot(), res = 120,
                           cacheKeyExpr = { list(selection(), input$show_hist, input$show_proj, input$free_y, input$auto_y, input$legend_right) }))
-  
+
 }

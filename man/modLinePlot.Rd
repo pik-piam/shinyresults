@@ -4,7 +4,14 @@
 \alias{modLinePlot}
 \title{modLinePlot Module}
 \usage{
-modLinePlot(input, output, session, report, validation)
+modLinePlot(
+  input,
+  output,
+  session,
+  report,
+  validation,
+  selectionSets = getOption("appResults")[[1]]$selectionSets
+)
 }
 \arguments{
 \item{input, output, session}{Default input, output and session objects coming from shiny}
@@ -12,6 +19,9 @@ modLinePlot(input, output, session, report, validation)
 \item{report}{A reactive containing the report to be visualized}
 
 \item{validation}{A reactive containing validation data to be shown}
+
+\item{selectionSets}{named list of selection sets per filter column (passed to \code{\link{modFilter}}).
+Defaults to the \code{selectionSets} entry of the active \code{appResults} option.}
 }
 \description{
 Shiny module which works together with \code{\link{modLinePlotUI}} to produce a line plot tab

@@ -32,7 +32,10 @@ appResults(
                      files directly in the tool. Can also be a named character vector of
                      multiple validation files.
            username - username to access "file" and "resultsfolder".
-           password - password to access "file" and "resultsfolder".}
+           password - password to access "file" and "resultsfolder".
+           selectionSets - named list of selection sets per filter column.
+                  Each element is a named list mapping set labels to character vectors of values.
+                  Example: \code{list(region = list("All EUR regions" = c("EUC", "EUS", "EUW", "DEU")))}}
 
 \item{readFilePar}{read report data files in parallel (faster) (TRUE) or in sequence (FALSE)}
 

@@ -21,6 +21,9 @@
 #'                      multiple validation files.
 #'            username - username to access "file" and "resultsfolder".
 #'            password - password to access "file" and "resultsfolder".
+#'            selectionSets - named list of selection sets per filter column.
+#'                   Each element is a named list mapping set labels to character vectors of values.
+#'                   Example: \code{list(region = list("All EUR regions" = c("EUC", "EUS", "EUW", "DEU")))}
 #' @param readFilePar read report data files in parallel (faster) (TRUE) or in sequence (FALSE)
 #' @param variableConfig Path to a YAML configuration file with variable presets, or NULL to use
 #'                       default config. The config defines presets for the Dashboard tab and

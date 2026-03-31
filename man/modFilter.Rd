@@ -17,7 +17,8 @@ modFilter(
   order = NULL,
   name = NULL,
   preselectYear = NULL,
-  preselectMinDate = NULL
+  preselectMinDate = NULL,
+  selectionSets = NULL
 )
 }
 \arguments{
@@ -46,6 +47,11 @@ listed here will be shown after the ones mentioned.}
 \item{preselectYear}{if provided the year filter will be preselected with this value}
 
 \item{preselectMinDate}{if provided the date filter will be preselected with this as lower value}
+
+\item{selectionSets}{named list of selection sets per filter column. Each element is a named list
+mapping set labels to character vectors of values. When a set is selected, all its member values
+are added to the selection. Only sets where all members are present in the data are shown.
+Example: \code{list(region = list("All EUR regions" = c("EUC", "EUS", "EUW", "DEU")))}}
 }
 \value{
 a reactive list with x as the filtered data and xdata containing the list of additional,
