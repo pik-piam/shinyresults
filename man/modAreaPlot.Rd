@@ -5,15 +5,13 @@
 \title{modAreaPlot Module}
 \usage{
 modAreaPlot(
-  input,
-  output,
-  session,
+  id,
   report,
   selectionSets = getOption("appResults")[[1]]$selectionSets
 )
 }
 \arguments{
-\item{input, output, session}{Default input, output and session objects coming from shiny}
+\item{id}{Module ID string, must match the id used in \code{\link{modAreaPlotUI}}}
 
 \item{report}{A reactive containing the report to be visualized}
 

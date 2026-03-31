@@ -4,10 +4,10 @@
 \alias{modDashboard}
 \title{modDashboard Server Module}
 \usage{
-modDashboard(input, output, session, report, validation, config)
+modDashboard(id, report, validation, config)
 }
 \arguments{
-\item{input, output, session}{Default input, output and session objects coming from shiny}
+\item{id}{Module ID string, must match the id used in \code{\link{modDashboardUI}}}
 
 \item{report}{A reactive list containing the report data (from modRunSelect)}
 

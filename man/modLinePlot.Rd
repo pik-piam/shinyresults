@@ -5,16 +5,14 @@
 \title{modLinePlot Module}
 \usage{
 modLinePlot(
-  input,
-  output,
-  session,
+  id,
   report,
   validation,
   selectionSets = getOption("appResults")[[1]]$selectionSets
 )
 }
 \arguments{
-\item{input, output, session}{Default input, output and session objects coming from shiny}
+\item{id}{Module ID string, must match the id used in \code{\link{modLinePlotUI}}}
 
 \item{report}{A reactive containing the report to be visualized}
 
