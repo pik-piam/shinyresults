@@ -54,8 +54,9 @@ appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, varia
     cfgModel <- cfg[[1]]
     modelName <- names(cfg)[[1]]
   } else {
-    cfgModel <- appResultsChooseFromList(cfg, "model")
-    modelName <- names(cfg)[[unlist(lapply(cfg, identical, cfgModel))]]
+    cfgId <- appResultsChooseFromList(cfg, "model")
+    cfgModel <- cfg[[cfgId]]
+    modelName <- names(cfg)[[cfgId]]
   }
   # check if user provides some information on settings that should be used directly,
   # if not use information from cfg
@@ -79,7 +80,7 @@ appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, varia
   }
 
   if (length(valfile) > 1) {
-    valfile <- appResultsChooseFromList(valfile, "validation file")
+    valfile <- valfile[[appResultsChooseFromList(valfile, "validation file")]]
   }
 
   if (!is.null(addInfo$username)) {
@@ -574,5 +575,5 @@ appResultsChooseFromList <- function(choices, label = "option") {
   cat("Please choose a ", label, ":\n\n", sep = "")
   cat(paste(seq_along(labels), labels, sep = ": "), sep = "\n")
   cat("\nNumber: ")
-  return(unname(choices[[as.numeric(readline())]]))
+  return(as.numeric(readline()))
 }
