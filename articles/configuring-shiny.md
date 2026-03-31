@@ -1,0 +1,136 @@
+# configuring-shiny
+
+## Overview
+
+`appResults` is a Shiny app for exploring and visualizing time series of
+modelling results (e.g. from MAgPIE or REMIND). It is configured via an
+R option called `appResults` that you typically set in your `.Rprofile`.
+
+## Basic configuration
+
+Create a named list with one entry per model and pass it to
+`options(appResults = ...)`. Each entry is itself a list with these
+fields:
+
+| Field           | Description                                                                                                                                                                               |
+|-----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `file`          | URL or path to an RDS overview file listing all available runs. Use `reduced_overview.rds` for faster loading or `overview.rds` for the full set of filters.                              |
+| `resultsfolder` | URL or path to the folder containing the individual run result files (RDS).                                                                                                               |
+| `valfile`       | Validation data — an RDS file containing a quitte object or a CSV/MIF file. `NULL` lets users upload files inside the app. Can be a named character vector for multiple validation files. |
+| `username`      | Username for HTTP authentication.                                                                                                                                                         |
+| `password`      | Password for HTTP authentication.                                                                                                                                                         |
+| `selectionSets` | Optional named list of predefined filter sets per column. Each element maps a label to a character vector of values.                                                                      |
+
+### Example `.Rprofile`
+
+``` r
+url <- "https://rse.pik-potsdam.de/data/magpie/results/rev1"
+
+options(appResults = list(
+  MAgPIE = list(
+    file          = paste0(url, "/reduced_overview.rds"),
+    resultsfolder = url,
+    valfile       = c(
+      "H12" = paste0(url, "/validation.rds"),
+      "H16" = paste0(url, "/validation_H16.rds")
+    ),
+    username      = "myuser",
+    password      = "mypassword"
+  )
+))
+```
+
+For actual MAgPIE / REMIND configuration values, check the internal wiki
+page.
+
+### Multiple models
+
+When the list contains more than one model, `appResults` will prompt you
+to choose which model to explore at startup:
+
+``` r
+options(appResults = list(
+  MAgPIE = list(file = "...", resultsfolder = "...", valfile = "..."),
+  REMIND = list(file = "...", resultsfolder = "...", valfile = "...")
+))
+```
+
+## Launching the app
+
+``` r
+library(shinyresults)
+appResults()
+```
+
+You can override any config field named arguments passed to
+`appResults`:
+
+``` r
+appResults(valfile = "/local/path/to/validation.rds")
+```
+
+Other arguments:
+
+- **`readFilePar`** — `TRUE` to read report files in parallel (faster),
+  `FALSE` (default) for sequential reading.
+- **`variableConfig`** — path to a custom YAML file with variable
+  presets (see below). `NULL` uses the default config.
+- **`port`** — port number for the Shiny app (default 3838). A fixed
+  port makes bookmarked URLs stable.
+
+## Selection sets
+
+Use `selectionSets` to define shortcuts for common filter selections.
+Each entry maps a filter column to a named list of value vectors:
+
+``` r
+options(appResults = list(
+  MAgPIE = list(
+    file          = "...",
+    resultsfolder = "...",
+    selectionSets = list(
+      region = list(
+        "All EUR regions" = c("EUC", "EUS", "EUW", "DEU"),
+        "Global"          = "GLO"
+      )
+    )
+  )
+))
+```
+
+## Variable configuration (YAML)
+
+`appResults` loads variable presets that populate the Dashboard tab and
+the quick-load menus in plot tabs. The lookup order is:
+
+1.  Explicit path passed via `variableConfig`.
+2.  User config at `~/.shinyresults/variables.yaml`.
+3.  Package default (`inst/extdata/variables_default.yaml`).
+
+A configuration file looks like this:
+
+``` yaml
+meta:
+  version: "1.0"
+  description: "My custom presets"
+
+presets:
+  land_cover:
+    name: "Land Cover"
+    description: "Land cover types and changes"
+    variables:
+      - variable: "Resources|Land Cover|+|Cropland"
+        plot_type: "line"
+      - variable: "Resources|Land Cover|+|Forest"
+        plot_type: "line"
+
+  emissions:
+    name: "GHG Emissions"
+    variables:
+      - variable: "Emissions|CO2|Land|+|Land-use Change"
+        plot_type: "line"
+```
+
+Each preset has a `name`, an optional `description`, and a list of
+`variables` entries with `variable` (the variable name) and `plot_type`
+(defaults to `"line"`).
