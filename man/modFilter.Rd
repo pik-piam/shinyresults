@@ -64,3 +64,4 @@ Shiny module which works together with \code{\link{modFilterUI}} to filter a dat
 \author{
 Jan Philipp Dietrich
 }
+\keyword{internal}

@@ -1,13 +1,13 @@
 # A collection of shiny apps and modules to visualize/handle model results
 
-R package **shinyresults**, version **0.37.0**
+R package **shinyresults**, version **0.37.1**
 
 [![CRAN status](https://www.r-pkg.org/badges/version/shinyresults)](https://cran.r-project.org/package=shinyresults) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1478922.svg)](https://doi.org/10.5281/zenodo.1478922) [![R build status](https://github.com/pik-piam/shinyresults/workflows/check/badge.svg)](https://github.com/pik-piam/shinyresults/actions) [![codecov](https://codecov.io/gh/pik-piam/shinyresults/branch/master/graph/badge.svg)](https://app.codecov.io/gh/pik-piam/shinyresults) [![r-universe](https://pik-piam.r-universe.dev/badges/shinyresults)](https://pik-piam.r-universe.dev/builds)
 
 ## Purpose and Functionality
 
-A collection of tools which allow to manipulate and analyze
-    code.
+A collection of shiny apps and modules to explore and
+    visualize time series of modelling results.
 
 
 ## Installation
@@ -47,7 +47,7 @@ In case of questions / problems please contact Jan Philipp Dietrich <dietrich@pi
 
 To cite package **shinyresults** in publications use:
 
-Dietrich J, Humpenoeder F, Sauer P (2026). "shinyresults: A collection of shiny apps and modules to visualize/handle model results." doi:10.5281/zenodo.1478922 <https://doi.org/10.5281/zenodo.1478922>, Version: 0.37.0, <https://github.com/pik-piam/shinyresults>.
+Dietrich J, Humpenoeder F, Sauer P, Rein P (2026). "shinyresults: A collection of shiny apps and modules to visualize/handle model results." doi:10.5281/zenodo.1478922 <https://doi.org/10.5281/zenodo.1478922>, Version: 0.37.1, <https://github.com/pik-piam/shinyresults>.
 
 A BibTeX entry for LaTeX users is
 
@@ -55,11 +55,11 @@ A BibTeX entry for LaTeX users is
 @Misc{,
   title = {shinyresults: A collection of shiny apps and modules to visualize/handle model
     results},
-  author = {Jan Philipp Dietrich and Florian Humpenoeder and Pascal Sauer},
+  author = {Jan Philipp Dietrich and Florian Humpenoeder and Pascal Sauer and Patrick Rein},
   doi = {10.5281/zenodo.1478922},
   date = {2026-03-31},
   year = {2026},
   url = {https://github.com/pik-piam/shinyresults},
-  note = {Version: 0.37.0},
+  note = {Version: 0.37.1},
 }
 ```

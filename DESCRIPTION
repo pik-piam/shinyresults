@@ -2,15 +2,20 @@ Type: Package
 Package: shinyresults
 Title: A collection of shiny apps and modules to visualize/handle model
     results
-Version: 0.37.0
+Version: 0.37.1
 Date: 2026-03-31
 Authors@R: c(
-    person("Jan Philipp", "Dietrich", , "dietrich@pik-potsdam.de", role = c("aut", "cre")),
-    person("Florian", "Humpenoeder", , "humpenoeder@pik-potsdam.de", role = "aut"),
-    person("Pascal", "Sauer", , "pascal.sauer@pik-potsdam.de", role = "aut")
+    person("Jan Philipp", "Dietrich", , "dietrich@pik-potsdam.de", role = c("aut", "cre"),
+           comment = c(affiliation = "Potsdam Institute for Climate Impact Research", ORCID = "0000-0002-4309-6431")),
+    person("Florian", "Humpenoeder", , "humpenoeder@pik-potsdam.de", role = "aut",
+           comment = c(affiliation = "Potsdam Institute for Climate Impact Research")),
+    person("Pascal", "Sauer", , "pascal.sauer@pik-potsdam.de", role = "aut",
+           comment = c(affiliation = "Potsdam Institute for Climate Impact Research", ORCID = "0000-0002-6856-8239")),
+    person("Patrick", "Rein", , "patrick.rein@pik-potsdam.de", role = "aut",
+           comment = c(affiliation = "Potsdam Institute for Climate Impact Research", ORCID = "0000-0001-9454-8381"))
   )
-Description: A collection of tools which allow to manipulate and analyze
-    code.
+Description: A collection of shiny apps and modules to explore and
+    visualize time series of modelling results.
 License: BSD_2_clause + file LICENSE
 URL: https://github.com/pik-piam/shinyresults,
     https://doi.org/10.5281/zenodo.1478922

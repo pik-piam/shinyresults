@@ -18,3 +18,4 @@ Extract the display names of all presets from a configuration.
 \author{
 Florian Humpenoeder
 }
+\keyword{internal}

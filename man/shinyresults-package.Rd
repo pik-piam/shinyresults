@@ -6,7 +6,7 @@
 \alias{shinyresults-package}
 \title{shinyresults: A collection of shiny apps and modules to visualize/handle model results}
 \description{
-A collection of tools which allow to manipulate and analyze code.
+A collection of shiny apps and modules to explore and visualize time series of modelling results.
 }
 \seealso{
 Useful links:
@@ -18,12 +18,14 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Jan Philipp Dietrich \email{dietrich@pik-potsdam.de}
+\strong{Maintainer}: Jan Philipp Dietrich \email{dietrich@pik-potsdam.de} (\href{https://orcid.org/0000-0002-4309-6431}{ORCID}) (Potsdam Institute for Climate Impact Research)
 
 Authors:
 \itemize{
-  \item Florian Humpenoeder \email{humpenoeder@pik-potsdam.de}
-  \item Pascal Sauer \email{pascal.sauer@pik-potsdam.de}
+  \item Florian Humpenoeder \email{humpenoeder@pik-potsdam.de} (Potsdam Institute for Climate Impact Research)
+  \item Pascal Sauer \email{pascal.sauer@pik-potsdam.de} (\href{https://orcid.org/0000-0002-6856-8239}{ORCID}) (Potsdam Institute for Climate Impact Research)
+  \item Patrick Rein \email{patrick.rein@pik-potsdam.de} (\href{https://orcid.org/0000-0001-9454-8381}{ORCID}) (Potsdam Institute for Climate Impact Research)
 }
 
 }
+\keyword{internal}

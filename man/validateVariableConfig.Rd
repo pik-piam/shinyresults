@@ -18,3 +18,4 @@ Validates the structure of a variable configuration list.
 \author{
 Florian Humpenoeder
 }
+\keyword{internal}

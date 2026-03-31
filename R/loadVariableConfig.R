@@ -64,6 +64,7 @@ loadVariableConfig <- function(configFile = NULL) {
 #'
 #' @param config List read from YAML file
 #' @return Validated and normalized config list
+#' @keywords internal
 #' @author Florian Humpenoeder
 validateVariableConfig <- function(config) {
   if (!is.list(config)) {
@@ -125,7 +126,7 @@ validateVariableConfig <- function(config) {
 #' @param config Variable configuration list from loadVariableConfig()
 #' @return Named character vector where names are preset IDs and values are display names
 #' @author Florian Humpenoeder
-#' @export
+#' @keywords internal
 getPresetNames <- function(config) {
   if (is.null(config$presets) || length(config$presets) == 0) {
     return(character(0))
@@ -147,7 +148,7 @@ getPresetNames <- function(config) {
 #' @param presetId ID of the preset to extract variables from
 #' @return List of variable configurations, each with 'variable' and 'plot_type' fields
 #' @author Florian Humpenoeder
-#' @export
+#' @keywords internal
 getPresetVariables <- function(config, presetId) {
   if (is.null(config$presets[[presetId]])) {
     return(list())

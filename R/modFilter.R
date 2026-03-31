@@ -27,7 +27,7 @@
 #' @seealso \code{\link{modFilterUI}}, \code{\link{appModelstats}}
 #' @importFrom shiny moduleServer updateSliderInput debounce
 #' @importFrom data.table uniqueN
-#' @keywods internal
+#' @keywords internal
 
 modFilter <- function(id, # nolint: cyclocomp_linter.
                       data, exclude = NULL, showAll = FALSE,

@@ -5,6 +5,7 @@
 #'
 #' @name bookmarkState
 #' @author Florian Humpenoeder
+#' @keywords internal
 NULL
 
 #' Compress IDs for URL

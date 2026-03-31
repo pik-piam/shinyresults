@@ -3,8 +3,6 @@
 export(appModelstats)
 export(appResults)
 export(appResultsLocal)
-export(getPresetNames)
-export(getPresetVariables)
 import(shiny)
 importFrom(base64enc,base64decode)
 importFrom(base64enc,base64encode)
