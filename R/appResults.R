@@ -312,9 +312,11 @@ appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, varia
                   position = "after")
       }
       if (type == "Line") {
-        output[[tabname]] <- modLinePlot(tabname, report = repFull, validation = reactive(valFull))
+        output[[tabname]] <- modLinePlot(tabname, report = repFull, validation = reactive(valFull),
+                                         selectionSets = cfgModel$selectionSets)
       } else if (type == "Area") {
-        output[[tabname]] <- modAreaPlot(tabname, report = repFull)
+        output[[tabname]] <- modAreaPlot(tabname, report = repFull,
+                                         selectionSets = cfgModel$selectionSets)
       }
     }
 

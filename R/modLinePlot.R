@@ -13,8 +13,7 @@
 #' @importFrom shiny moduleServer renderCachedPlot observeEvent updateSelectInput
 #' @export
 
-modLinePlot <- function(id, report, validation,
-                       selectionSets = getOption("appResults")[[1]]$selectionSets) {
+modLinePlot <- function(id, report, validation, selectionSets = NULL) {
   moduleServer(id, function(input, output, session) {
 
     # Quick variable selection handler

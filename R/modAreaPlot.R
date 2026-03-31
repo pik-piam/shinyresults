@@ -12,8 +12,7 @@
 #' @importFrom data.table as.data.table merge.data.table
 #' @export
 
-modAreaPlot <- function(id, report,
-                       selectionSets = getOption("appResults")[[1]]$selectionSets) {
+modAreaPlot <- function(id, report, selectionSets = NULL) {
   moduleServer(id, function(input, output, session) {
 
     addGroup <- function(report) {
