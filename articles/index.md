@@ -2,4 +2,4 @@
 
 ### All vignettes
 
-- [configuring-shiny](configuring-shiny.md):
+- [Configuring shinyresults](configuring-shiny.md):

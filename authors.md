@@ -22,12 +22,12 @@ Source:
 
 Dietrich J, Humpenoeder F, Sauer P, Rein P (2026). *shinyresults: A
 collection of shiny apps and modules to visualize/handle model results*.
-R package version 0.37.1.
+R package version 0.37.2.
 
     @Manual{,
       title = {shinyresults: A collection of shiny apps and modules to visualize/handle model
     results},
       author = {Jan Philipp Dietrich and Florian Humpenoeder and Pascal Sauer and Patrick Rein},
       year = {2026},
-      note = {R package version 0.37.1},
+      note = {R package version 0.37.2},
     }

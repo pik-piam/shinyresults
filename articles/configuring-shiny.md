@@ -1,10 +1,11 @@
-# configuring-shiny
+# Configuring shinyresults
 
 ## Overview
 
 `appResults` is a Shiny app for exploring and visualizing time series of
-modelling results (e.g. from MAgPIE or REMIND). It is configured via an
-R option called `appResults` that you typically set in your `.Rprofile`.
+modelling results (mainly from MAgPIE or REMIND). It is configured via
+an R option called `appResults` that you typically set in your
+`.Rprofile`.
 
 ## Basic configuration
 
