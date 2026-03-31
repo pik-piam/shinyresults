@@ -4,11 +4,7 @@
 \alias{modAreaPlot}
 \title{modAreaPlot Module}
 \usage{
-modAreaPlot(
-  id,
-  report,
-  selectionSets = getOption("appResults")[[1]]$selectionSets
-)
+modAreaPlot(id, report, selectionSets = NULL)
 }
 \arguments{
 \item{id}{Module ID string, must match the id used in \code{\link{modAreaPlotUI}}}

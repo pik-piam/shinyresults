@@ -4,12 +4,7 @@
 \alias{modLinePlot}
 \title{modLinePlot Module}
 \usage{
-modLinePlot(
-  id,
-  report,
-  validation,
-  selectionSets = getOption("appResults")[[1]]$selectionSets
-)
+modLinePlot(id, report, validation, selectionSets = NULL)
 }
 \arguments{
 \item{id}{Module ID string, must match the id used in \code{\link{modLinePlotUI}}}
