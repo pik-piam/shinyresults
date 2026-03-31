@@ -17,7 +17,8 @@
 #'            resultsfolder - folder in which model results are stored in rds format.
 #'            valfile - validation data. Can be a CSV/MIF file or rds file with a quitte object
 #'                      (saved with saveRDS). NULL by default; in this case the user can upload
-#'                      files directly in the tool.
+#'                      files directly in the tool. Can also be a named character vector of
+#'                      multiple validation files.
 #'            username - username to access "file" and "resultsfolder".
 #'            password - password to access "file" and "resultsfolder".
 #' @param readFilePar read report data files in parallel (faster) (TRUE) or in sequence (FALSE)
@@ -51,15 +52,11 @@ appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, varia
   # If information for more models exists the user can choose the model.
   if (length(cfg) == 1) {
     cfgModel <- cfg[[1]]
-    modelName <- names(cfg)[1]
+    modelName <- names(cfg)[[1]]
   } else {
-    cat("Please choose a model:\n\n")
-    models <- names(cfg)
-    cat(paste(seq_along(models), models, sep = ": "), sep = "\n")
-    cat("\nNumber: ")
-    selection <- as.numeric(readline())
-    cfgModel <- cfg[[selection]]
-    modelName <- models[selection]
+    cfgId <- appResultsChooseFromList(cfg, "model")
+    cfgModel <- cfg[[cfgId]]
+    modelName <- names(cfg)[[cfgId]]
   }
   # check if user provides some information on settings that should be used directly,
   # if not use information from cfg
@@ -82,6 +79,10 @@ appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, varia
     valfile <- cfgModel$valfile
   }
 
+  if (length(valfile) > 1) {
+    valfile <- valfile[[appResultsChooseFromList(valfile, "validation file")]]
+  }
+
   if (!is.null(addInfo$username)) {
     username <- addInfo$username
   } else {
@@ -95,7 +96,7 @@ appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, varia
   }
 
   # Load variable configuration for presets and dashboard
- varConfig <- loadVariableConfig(variableConfig)
+  varConfig <- loadVariableConfig(variableConfig)
 
   if (grepl("https://", file)) {
     tmp <- try(curl(file, "r", new_handle(username = username, password = password)))
@@ -567,4 +568,12 @@ appResults <- function(cfg = getOption("appResults"), readFilePar = FALSE, varia
   }
 
   runApp(shinyApp(ui = ui, server = server, enableBookmarking = "url"), launch.browser = TRUE, port = port)
+}
+
+appResultsChooseFromList <- function(choices, label = "option") {
+  labels <- if (!is.null(names(choices))) names(choices) else choices
+  cat("Please choose a ", label, ":\n\n", sep = "")
+  cat(paste(seq_along(labels), labels, sep = ": "), sep = "\n")
+  cat("\nNumber: ")
+  return(as.numeric(readline()))
 }
