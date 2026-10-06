@@ -4,132 +4,118 @@ export(appModelstats)
 export(appResults)
 export(appResultsLocal)
 import(shiny)
-importFrom(base64enc,base64decode)
-importFrom(base64enc,base64encode)
-importFrom(curl,curl)
-importFrom(curl,new_handle)
-importFrom(data.table,as.data.table)
-importFrom(data.table,data.table)
-importFrom(data.table,fread)
-importFrom(data.table,is.data.table)
-importFrom(data.table,merge.data.table)
-importFrom(data.table,rbindlist)
-importFrom(data.table,setcolorder)
-importFrom(data.table,setnames)
-importFrom(data.table,uniqueN)
+importFrom(base64enc,
+  base64decode,
+  base64encode
+)
+importFrom(curl,
+  curl,
+  new_handle
+)
+importFrom(data.table,
+  as.data.table,
+  data.table,
+  fread,
+  is.data.table,
+  merge.data.table,
+  rbindlist,
+  setcolorder,
+  setnames,
+  uniqueN
+)
 importFrom(doSNOW,registerDoSNOW)
-importFrom(foreach,"%dopar%")
-importFrom(foreach,foreach)
-importFrom(ggplot2,aes)
-importFrom(ggplot2,annotate)
-importFrom(ggplot2,element_text)
-importFrom(ggplot2,geom_line)
-importFrom(ggplot2,geom_point)
-importFrom(ggplot2,geom_ribbon)
-importFrom(ggplot2,ggplot)
-importFrom(ggplot2,ggsave)
-importFrom(ggplot2,guide_legend)
-importFrom(ggplot2,guides)
-importFrom(ggplot2,labs)
-importFrom(ggplot2,theme)
-importFrom(ggplot2,theme_minimal)
-importFrom(ggplot2,theme_void)
-importFrom(ggplot2,unit)
-importFrom(grDevices,dev.off)
-importFrom(grDevices,pdf)
-importFrom(grDevices,png)
-importFrom(graphics,plot.new)
-importFrom(graphics,text)
+importFrom(foreach,
+  "%dopar%",
+  foreach
+)
+importFrom(ggplot2,
+  aes,
+  annotate,
+  element_text,
+  geom_line,
+  geom_point,
+  geom_ribbon,
+  ggplot,
+  ggsave,
+  guide_legend,
+  guides,
+  labs,
+  theme,
+  theme_minimal,
+  theme_void,
+  unit
+)
+importFrom(grDevices,
+  dev.off,
+  pdf,
+  png
+)
+importFrom(graphics,
+  plot.new,
+  text
+)
 importFrom(magclass,as.magpie)
-importFrom(mip,mipArea)
-importFrom(mip,mipLineHistorical)
-importFrom(mip,shorten_legend)
-importFrom(mip,theme_mip)
+importFrom(mip,
+  mipArea,
+  mipLineHistorical,
+  shorten_legend,
+  theme_mip
+)
 importFrom(parallel,detectCores)
-importFrom(plotly,`%>%`)
-importFrom(plotly,event_data)
-importFrom(plotly,ggplotly)
-importFrom(plotly,layout)
-importFrom(plotly,plotlyOutput)
-importFrom(plotly,plotlyProxy)
-importFrom(plotly,plotlyProxyInvoke)
-importFrom(plotly,renderPlotly)
+importFrom(plotly,
+  `%>%`,
+  event_data,
+  ggplotly,
+  layout,
+  plotlyOutput,
+  plotlyProxy,
+  plotlyProxyInvoke,
+  renderPlotly
+)
 importFrom(reshape2,dcast)
 importFrom(rlang,.data)
-importFrom(shiny,HTML)
-importFrom(shiny,NS)
-importFrom(shiny,Progress)
-importFrom(shiny,actionButton)
-importFrom(shiny,actionLink)
-importFrom(shiny,bookmarkButton)
-importFrom(shiny,checkboxGroupInput)
-importFrom(shiny,checkboxInput)
-importFrom(shiny,column)
-importFrom(shiny,conditionalPanel)
-importFrom(shiny,dataTableOutput)
-importFrom(shiny,debounce)
-importFrom(shiny,div)
-importFrom(shiny,downloadButton)
-importFrom(shiny,downloadHandler)
-importFrom(shiny,fileInput)
-importFrom(shiny,fluidPage)
-importFrom(shiny,fluidRow)
-importFrom(shiny,h2)
-importFrom(shiny,hideTab)
-importFrom(shiny,hoverOpts)
-importFrom(shiny,icon)
-importFrom(shiny,incProgress)
-importFrom(shiny,insertTab)
-importFrom(shiny,insertUI)
-importFrom(shiny,mainPanel)
-importFrom(shiny,moduleServer)
-importFrom(shiny,navbarPage)
-importFrom(shiny,nearPoints)
-importFrom(shiny,numericInput)
-importFrom(shiny,observe)
-importFrom(shiny,observeEvent)
-importFrom(shiny,onBookmark)
-importFrom(shiny,onRestore)
-importFrom(shiny,plotOutput)
-importFrom(shiny,radioButtons)
-importFrom(shiny,reactive)
-importFrom(shiny,reactiveVal)
-importFrom(shiny,reactiveValues)
-importFrom(shiny,removeUI)
-importFrom(shiny,renderCachedPlot)
-importFrom(shiny,renderDataTable)
-importFrom(shiny,renderPlot)
-importFrom(shiny,renderPrint)
-importFrom(shiny,renderText)
-importFrom(shiny,renderUI)
-importFrom(shiny,runApp)
-importFrom(shiny,selectInput)
-importFrom(shiny,setBookmarkExclude)
-importFrom(shiny,shinyApp)
-importFrom(shiny,showNotification)
-importFrom(shiny,sidebarLayout)
-importFrom(shiny,sidebarPanel)
-importFrom(shiny,sliderInput)
-importFrom(shiny,tabPanel)
-importFrom(shiny,tabsetPanel)
-importFrom(shiny,tagList)
-importFrom(shiny,tags)
-importFrom(shiny,textInput)
-importFrom(shiny,textOutput)
-importFrom(shiny,titlePanel)
-importFrom(shiny,uiOutput)
-importFrom(shiny,updateCheckboxGroupInput)
-importFrom(shiny,updateCheckboxInput)
-importFrom(shiny,updateSelectInput)
-importFrom(shiny,updateSliderInput)
-importFrom(shiny,updateTextInput)
-importFrom(shiny,verbatimTextOutput)
-importFrom(shiny,wellPanel)
-importFrom(shiny,withProgress)
-importFrom(snow,makeCluster)
-importFrom(snow,stopCluster)
+importFrom(shiny,
+  NS,
+  Progress,
+  actionButton,
+  column,
+  debounce,
+  div,
+  fluidPage,
+  icon,
+  incProgress,
+  insertTab,
+  mainPanel,
+  moduleServer,
+  observeEvent,
+  plotOutput,
+  reactive,
+  reactiveVal,
+  reactiveValues,
+  removeUI,
+  renderCachedPlot,
+  renderPlot,
+  renderUI,
+  selectInput,
+  shinyApp,
+  sidebarLayout,
+  sidebarPanel,
+  tagList,
+  tags,
+  uiOutput,
+  updateSelectInput,
+  updateSliderInput,
+  updateTextInput,
+  withProgress
+)
+importFrom(snow,
+  makeCluster,
+  stopCluster
+)
 importFrom(tools,file_path_sans_ext)
 importFrom(trafficlight,trafficlight)
-importFrom(utils,head)
-importFrom(utils,write.csv)
+importFrom(utils,
+  head,
+  write.csv
+)
 importFrom(yaml,read_yaml)

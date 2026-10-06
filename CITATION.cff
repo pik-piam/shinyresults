@@ -4,8 +4,8 @@ type: software
 title: |-
   shinyresults: A collection of shiny apps and modules to visualize/handle model
       results
-version: 0.37.2
-date-released: '2026-03-31'
+version: 0.38.0
+date-released: '2026-10-06'
 abstract: A collection of shiny apps and modules to explore and visualize time series
   of modelling results.
 authors:
