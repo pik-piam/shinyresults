@@ -12,7 +12,9 @@ Authors@R: c(
     person("Pascal", "Sauer", , "pascal.sauer@pik-potsdam.de", role = "aut",
            comment = c(affiliation = "Potsdam Institute for Climate Impact Research", ORCID = "0000-0002-6856-8239")),
     person("Patrick", "Rein", , "patrick.rein@pik-potsdam.de", role = "aut",
-           comment = c(affiliation = "Potsdam Institute for Climate Impact Research", ORCID = "0000-0001-9454-8381"))
+           comment = c(affiliation = "Potsdam Institute for Climate Impact Research", ORCID = "0000-0001-9454-8381")),
+    person("Georg", "Schroeter", , "georg.schroeter@pik-potsdam.de", role = "aut",
+           comment = c(affiliation = "Potsdam Institute for Climate Impact Research"))
   )
 Description: A collection of shiny apps and modules to explore and
     visualize time series of modelling results.

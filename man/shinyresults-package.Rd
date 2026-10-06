@@ -26,6 +26,7 @@ Authors:
   \item Florian Humpenoeder \email{humpenoeder@pik-potsdam.de} (affiliation: Potsdam Institute for Climate Impact Research)
   \item Pascal Sauer \email{pascal.sauer@pik-potsdam.de} (\href{https://orcid.org/0000-0002-6856-8239}{ORCID}) (affiliation: Potsdam Institute for Climate Impact Research)
   \item Patrick Rein \email{patrick.rein@pik-potsdam.de} (\href{https://orcid.org/0000-0001-9454-8381}{ORCID}) (affiliation: Potsdam Institute for Climate Impact Research)
+  \item Georg Schroeter \email{georg.schroeter@pik-potsdam.de} (affiliation: Potsdam Institute for Climate Impact Research)
 }
 
 }
