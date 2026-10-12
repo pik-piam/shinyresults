@@ -7,7 +7,7 @@ output folder (with subfolders for each run).
 ## Usage
 
 ``` r
-appResultsLocal(folder = "output/", valfile = NULL)
+appResultsLocal(folder = "output/", valfile = NULL, port = 3838)
 ```
 
 ## Arguments
@@ -23,6 +23,10 @@ appResultsLocal(folder = "output/", valfile = NULL)
   provided as mif (in the latter case it will be converted to rds
   first). If not path is given the function will look automatically for
   an validation file in the output folder
+
+- port:
+
+  Port number for the Shiny app (default: 3838)
 
 ## See also
 

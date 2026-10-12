@@ -16,18 +16,25 @@ Useful links:
 ## Author
 
 **Maintainer**: Jan Philipp Dietrich <dietrich@pik-potsdam.de>
-([ORCID](https://orcid.org/0000-0002-4309-6431)) (Potsdam Institute for
-Climate Impact Research)
+([ORCID](https://orcid.org/0000-0002-4309-6431)) (affiliation: Potsdam
+Institute for Climate Impact Research)
 
 Authors:
 
-- Florian Humpenoeder <humpenoeder@pik-potsdam.de> (Potsdam Institute
-  for Climate Impact Research)
+- Jan Philipp Dietrich <dietrich@pik-potsdam.de>
+  ([ORCID](https://orcid.org/0000-0002-4309-6431)) (affiliation: Potsdam
+  Institute for Climate Impact Research)
+
+- Florian Humpenoeder <humpenoeder@pik-potsdam.de> (affiliation: Potsdam
+  Institute for Climate Impact Research)
 
 - Pascal Sauer <pascal.sauer@pik-potsdam.de>
-  ([ORCID](https://orcid.org/0000-0002-6856-8239)) (Potsdam Institute
-  for Climate Impact Research)
+  ([ORCID](https://orcid.org/0000-0002-6856-8239)) (affiliation: Potsdam
+  Institute for Climate Impact Research)
 
 - Patrick Rein <patrick.rein@pik-potsdam.de>
-  ([ORCID](https://orcid.org/0000-0001-9454-8381)) (Potsdam Institute
-  for Climate Impact Research)
+  ([ORCID](https://orcid.org/0000-0001-9454-8381)) (affiliation: Potsdam
+  Institute for Climate Impact Research)
+
+- Georg Schroeter <georg.schroeter@pik-potsdam.de> (affiliation: Potsdam
+  Institute for Climate Impact Research)
