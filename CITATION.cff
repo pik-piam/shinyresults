@@ -4,8 +4,8 @@ type: software
 title: |-
   shinyresults: A collection of shiny apps and modules to visualize/handle model
       results
-version: 0.37.2
-date-released: '2026-03-31'
+version: 0.38.0
+date-released: '2026-10-12'
 abstract: A collection of shiny apps and modules to explore and visualize time series
   of modelling results.
 authors:
@@ -27,6 +27,10 @@ authors:
   given-names: Patrick
   email: patrick.rein@pik-potsdam.de
   orcid: https://orcid.org/0000-0001-9454-8381
+  affiliation: Potsdam Institute for Climate Impact Research
+- family-names: Schroeter
+  given-names: Georg
+  email: georg.schroeter@pik-potsdam.de
   affiliation: Potsdam Institute for Climate Impact Research
 license: BSD-2-Clause
 repository-code: https://github.com/pik-piam/shinyresults

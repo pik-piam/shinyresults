@@ -13,3 +13,4 @@
 ^\.claude$
 ^_pkgdown\.yml$
 ^vignettes/.lintr$
+^CODE_STYLE\.md$

@@ -18,13 +18,15 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Jan Philipp Dietrich \email{dietrich@pik-potsdam.de} (\href{https://orcid.org/0000-0002-4309-6431}{ORCID}) (Potsdam Institute for Climate Impact Research)
+\strong{Maintainer}: Jan Philipp Dietrich \email{dietrich@pik-potsdam.de} (\href{https://orcid.org/0000-0002-4309-6431}{ORCID}) (affiliation: Potsdam Institute for Climate Impact Research)
 
 Authors:
 \itemize{
-  \item Florian Humpenoeder \email{humpenoeder@pik-potsdam.de} (Potsdam Institute for Climate Impact Research)
-  \item Pascal Sauer \email{pascal.sauer@pik-potsdam.de} (\href{https://orcid.org/0000-0002-6856-8239}{ORCID}) (Potsdam Institute for Climate Impact Research)
-  \item Patrick Rein \email{patrick.rein@pik-potsdam.de} (\href{https://orcid.org/0000-0001-9454-8381}{ORCID}) (Potsdam Institute for Climate Impact Research)
+  \item Jan Philipp Dietrich \email{dietrich@pik-potsdam.de} (\href{https://orcid.org/0000-0002-4309-6431}{ORCID}) (affiliation: Potsdam Institute for Climate Impact Research)
+  \item Florian Humpenoeder \email{humpenoeder@pik-potsdam.de} (affiliation: Potsdam Institute for Climate Impact Research)
+  \item Pascal Sauer \email{pascal.sauer@pik-potsdam.de} (\href{https://orcid.org/0000-0002-6856-8239}{ORCID}) (affiliation: Potsdam Institute for Climate Impact Research)
+  \item Patrick Rein \email{patrick.rein@pik-potsdam.de} (\href{https://orcid.org/0000-0001-9454-8381}{ORCID}) (affiliation: Potsdam Institute for Climate Impact Research)
+  \item Georg Schroeter \email{georg.schroeter@pik-potsdam.de} (affiliation: Potsdam Institute for Climate Impact Research)
 }
 
 }

@@ -2,8 +2,8 @@ Type: Package
 Package: shinyresults
 Title: A collection of shiny apps and modules to visualize/handle model
     results
-Version: 0.37.2
-Date: 2026-03-31
+Version: 0.38.0
+Date: 2026-10-12
 Authors@R: c(
     person("Jan Philipp", "Dietrich", , "dietrich@pik-potsdam.de", role = c("aut", "cre"),
            comment = c(affiliation = "Potsdam Institute for Climate Impact Research", ORCID = "0000-0002-4309-6431")),
@@ -12,7 +12,9 @@ Authors@R: c(
     person("Pascal", "Sauer", , "pascal.sauer@pik-potsdam.de", role = "aut",
            comment = c(affiliation = "Potsdam Institute for Climate Impact Research", ORCID = "0000-0002-6856-8239")),
     person("Patrick", "Rein", , "patrick.rein@pik-potsdam.de", role = "aut",
-           comment = c(affiliation = "Potsdam Institute for Climate Impact Research", ORCID = "0000-0001-9454-8381"))
+           comment = c(affiliation = "Potsdam Institute for Climate Impact Research", ORCID = "0000-0001-9454-8381")),
+    person("Georg", "Schroeter", , "georg.schroeter@pik-potsdam.de", role = "aut",
+           comment = c(affiliation = "Potsdam Institute for Climate Impact Research"))
   )
 Description: A collection of shiny apps and modules to explore and
     visualize time series of modelling results.
@@ -47,6 +49,6 @@ Suggests:
     rmarkdown
 Encoding: UTF-8
 LazyData: no
-RoxygenNote: 7.3.3
 VignetteBuilder: knitr
 Config/Needs/website: tidyverse/tidytemplate
+Config/roxygen2/version: 8.1.0

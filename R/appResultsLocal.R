@@ -8,11 +8,12 @@
 #' @param valfile Path to a validation file, preferably in rds format, but can also be provided as mif (in the 
 #' latter case it will be converted to rds first). If not path is given the function will look automatically for 
 #' an validation file in the output folder
+#' @param port Port number for the Shiny app (default: 3838)
 #' @author Jan Philipp Dietrich, Lavinia Baumstark
 #' @seealso \code{\link{appResults}}
 #' @export
 
-appResultsLocal <- function(folder="output/", valfile=NULL) {
+appResultsLocal <- function(folder = "output/", valfile = NULL, port = 3838) {
   
   if (!requireNamespace("lucode2", quietly = TRUE)) {
     stop("Package \"lucode2\" needed for this function to work. Please install it.",
@@ -60,5 +61,5 @@ appResultsLocal <- function(folder="output/", valfile=NULL) {
                                        username="mine", 
                                        password="localModel"))
   
-  appResults(cfg=cfg_local)
+  appResults(cfg = cfg_local, port = port)
 }
