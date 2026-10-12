@@ -57,7 +57,7 @@ A BibTeX entry for LaTeX users is
     results},
   author = {Jan Philipp Dietrich and Florian Humpenoeder and Pascal Sauer and Patrick Rein and Georg Schroeter},
   doi = {10.5281/zenodo.1478922},
-  date = {2026-10-06},
+  date = {2026-10-12},
   year = {2026},
   url = {https://github.com/pik-piam/shinyresults},
   note = {Version: 0.38.0},

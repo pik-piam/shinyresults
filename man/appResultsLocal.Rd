@@ -14,8 +14,7 @@ MAgPIE model folder)}
 latter case it will be converted to rds first). If not path is given the function will look automatically for 
 an validation file in the output folder}
 
-\item{port}{Port number for the Shiny app (default: 3838). Using a fixed port allows
-consistent URLs for bookmarking.}
+\item{port}{Port number for the Shiny app (default: 3838)}
 }
 \description{
 version of appResults which is optimized to run on a local model folder. In contrast to appResults, 

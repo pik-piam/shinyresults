@@ -8,8 +8,7 @@
 #' @param valfile Path to a validation file, preferably in rds format, but can also be provided as mif (in the 
 #' latter case it will be converted to rds first). If not path is given the function will look automatically for 
 #' an validation file in the output folder
-#' @param port Port number for the Shiny app (default: 3838). Using a fixed port allows
-#'             consistent URLs for bookmarking.
+#' @param port Port number for the Shiny app (default: 3838)
 #' @author Jan Philipp Dietrich, Lavinia Baumstark
 #' @seealso \code{\link{appResults}}
 #' @export

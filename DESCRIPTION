@@ -3,7 +3,7 @@ Package: shinyresults
 Title: A collection of shiny apps and modules to visualize/handle model
     results
 Version: 0.38.0
-Date: 2026-10-06
+Date: 2026-10-12
 Authors@R: c(
     person("Jan Philipp", "Dietrich", , "dietrich@pik-potsdam.de", role = c("aut", "cre"),
            comment = c(affiliation = "Potsdam Institute for Climate Impact Research", ORCID = "0000-0002-4309-6431")),
